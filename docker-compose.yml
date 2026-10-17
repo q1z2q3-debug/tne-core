@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  tne-core:
+    build: .
+    container_name: tne-core
+    ports:
+      - "8000:8000"
+    volumes:
+      - tne_data:/app/data
+    environment:
+      - TNE_DB=/app/data/tne_trajectories.db
+    restart: unless-stopped
+
+volumes:
+  tne_data:
