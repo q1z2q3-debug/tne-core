@@ -234,3 +234,24 @@ def make_doubao_agent(api: TNEApiClient, session_id: Optional[str] = None) -> LL
         ),
         session_id=session_id,
     )
+
+
+def make_encoder_agent(api: TNEApiClient, session_id: Optional[str] = None) -> LLMAgent:
+    """
+    创建一个使用自训 encode 模型判断的 LLM Agent。
+
+    替代关键词法（DoubaoJudger），用阶段二训练的 MiniLM+九维分类头，
+    对任意任务文本判断九维向量（每维准确率 ~79%）。
+    """
+    from tne.projector.encoder_judger import TrainedEncoderJudger
+    judger = TrainedEncoderJudger()
+    return LLMAgent(
+        api=api,
+        vector_judger=judger.judge,
+        answer_generator=lambda task, ctx: (
+            f"[卦位#{ctx['gua_idx']}] 任务已认知定位。"
+            f"习惯模式: {ctx['habit']['mode']} (命中{ctx['habit'].get('freq',0)}次)。"
+            f"建议: {ctx['habit'].get('recommendation', '无')[:80]}"
+        ),
+        session_id=session_id,
+    )
