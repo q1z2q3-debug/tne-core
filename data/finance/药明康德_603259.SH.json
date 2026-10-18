@@ -1,0 +1,35 @@
+{
+  "name": "药明康德",
+  "code": "603259.SH",
+  "date": "2026-10-16 收盘",
+  "industry": "医药外包/CXO",
+  "quote": {
+    "close": 144.3,
+    "chg_pct": -6.6,
+    "open": 156.94,
+    "prev_close": 154.5,
+    "high": 159.92,
+    "low": 139.05,
+    "turnover_pct": 3.38,
+    "volume_wy": 8360.91,
+    "amount_yi": 123.4,
+    "pe_ttm": 20.21,
+    "pb": 5.35,
+    "mktcap_yi": 4379.37
+  },
+  "trend": {
+    "month_pct": -8.5,
+    "prev_month_pct": 0.0,
+    "year_pct": 45.8,
+    "two_week_pct": -13.77,
+    "year_high": 167.96,
+    "year_low": 85.53
+  },
+  "finance": {
+    "net_margin_pct": 53.9,
+    "roe_pct": 13.19,
+    "net_parent_yi": 110.8,
+    "revenue_yi": 288.97
+  },
+  "sector": "全球领先医药研发外包(CRO/CDMO)龙头, 一体化平台, 海外订单占比高"
+}

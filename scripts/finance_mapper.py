@@ -51,7 +51,7 @@ def map_nine(d):
     pe = q["pe_ttm"]
     g[6] = -1 if pe <= 0 else band(30 - pe, 15, -15)
     # g8 积累=归母净利规模(亿)
-    g[7] = band(f.get("net_parent_yi", f["net_profit_yi"]), 100, 20)
+    g[7] = band(f.get("net_parent_yi") or f.get("net_profit_yi") or 0, 100, 20)
     # g9 根性=长期根基(年趋势)
     g[8] = band(t["year_pct"], 5, -10)
     return g
