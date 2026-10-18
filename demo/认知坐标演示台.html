@@ -121,6 +121,14 @@
   .habit .h-rec{font-size:12.5px;color:var(--ink);line-height:1.6}
   .habit.mode-habit .h-rec b{color:var(--gold)}
 
+  /* 认知动力 */
+  .drive-t{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line2);font-size:12px}
+  .drive-t .dt-badge{flex:none;font-size:10px;letter-spacing:.1em;padding:2px 8px;border-radius:3px;background:rgba(107,135,184,.15);color:var(--yin);border:1px solid rgba(107,135,184,.3)}
+  .drive-t .dt-note{color:var(--muted)}
+  .drive-s{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line2);font-size:12px}
+  .drive-s .ds-badge{flex:none;font-size:10px;letter-spacing:.1em;padding:2px 8px;border-radius:3px;background:rgba(224,185,106,.15);color:var(--yang);border:1px solid rgba(224,185,106,.3);white-space:nowrap}
+  .drive-s .ds-txt{color:var(--muted);line-height:1.5}
+
   /* 邻域 */
   .neighbors{margin-top:0}
   .nb-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line2);font-size:12px}
@@ -221,6 +229,8 @@
     <div class="trans" id="trans"></div>
     <h3 style="margin-top:16px">习惯偏置</h3>
     <div class="habit" id="habit"></div>
+    <h3 style="margin-top:16px">认知动力 · 张力→信号</h3>
+    <div id="drivePanel"></div>
   </div>
 
 </section>
@@ -229,6 +239,17 @@
   <div class="panel" style="padding:16px 20px">
     <h3 style="margin-bottom:10px">邻域泛化 · Top-5 邻近卦位</h3>
     <div id="nbs"></div>
+  </div>
+</section>
+
+<section style="max-width:1280px;margin:0 auto;padding:20px 32px 0">
+  <div class="panel" style="padding:20px">
+    <h3 style="margin-bottom:12px">动态等价拓扑 · 行为层学习</h3>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.8">
+      从轨迹库 <b style="color:var(--gold-dim)">142 条记录 / 58 个活跃等价类</b> 的行为分布中，
+      发现符号层（错/综/错综）未见的等价关系。
+    </div>
+    <div id="topoPanel"></div>
   </div>
 </section>
 
@@ -259,18 +280,11 @@
 /* ===== 预设认知数据（来自本地自训 encode 模型 + /cognition 真实推演）===== */
 const SEM = ["愿景","决断","产出","方法","主态","协作","输入","积累","根性"];
 const LAYERS = ["显化层","转承层","根基层"];
-const SYM = {1:"生",0:"衡",-1:"敛"};
+const SYM = {1:"生",0:"衡","-1":"敛"};
 
-const DATA = [
-  {"text":"用户投诉产品有严重问题","v":[0,-1,0,0,-1,0,-1,0,-1],"c":[0.99,0.998,0.994,1.0,1.0,0.997,0.999,0.999,1.0],"idx":7563,"rep":2467,"mode":"habit","freq":6,"rec":"习惯模式：推荐复用「crisis_response」（历史 4 次，成功率 100%）。","tr":{"cuoo_FC":[0,1,0,0,1,0,1,0,1],"zong_FZ":[-1,0,-1,0,-1,0,0,-1,0],"cuoo_zong_FCZ":[1,0,1,0,1,0,0,1,0],"hu_FH_5dim":[0,0,-1,0,-1],"bian_FB":[0,-1,0,0,0,0,-1,0,-1]},"members":[2467,7563,12119,17215],"neighbors":[{"i": 7563, "d": 0.0, "v": "0-00-0-0-"}, {"i": 1002, "d": 1.0, "v": "--00-0-0-"}, {"i": 6834, "d": 1.0, "v": "0--0-0-0-"}, {"i": 7320, "d": 1.0, "v": "0-0--0-0-"}, {"i": 7536, "d": 1.0, "v": "0-00---0-"}]},
-  {"text":"从零打造一个全新产品","v":[1,1,1,1,0,0,0,0,0],"c":[0.987,0.985,0.946,1.0,1.0,1.0,0.878,0.983,0.995],"idx":19561,"rep":121,"mode":"habit","freq":3,"rec":"习惯模式：推荐复用「creative_build」（历史 3 次，成功率 100%）。","tr":{"cuoo_FC":[-1,-1,-1,-1,0,0,0,0,0],"zong_FZ":[0,0,0,0,0,1,1,1,1],"cuoo_zong_FCZ":[0,0,0,0,0,-1,-1,-1,-1],"hu_FH_5dim":[1,1,0,0,0],"bian_FB":[0,1,1,1,0,0,0,0,0]},"members":[121,19561,29561,31961],"neighbors":[{"i": 19561, "d": 0.0, "v": "++++00000"}, {"i": 13000, "d": 1.0, "v": "0+++00000"}, {"i": 17374, "d": 1.0, "v": "+0++00000"}, {"i": 18832, "d": 1.0, "v": "++0+00000"}, {"i": 19318, "d": 1.0, "v": "+++000000"}]},
-  {"text":"团队内部互相推诿没人干活","v":[0,0,0,0,-1,-1,0,0,-1],"c":[0.992,0.539,1.0,1.0,0.979,0.77,0.966,1.0,0.999],"idx":9732,"rep":2956,"mode":"explore","freq":0,"rec":"等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。","tr":{"cuoo_FC":[0,0,0,0,1,1,0,0,1],"zong_FZ":[-1,0,0,-1,-1,0,0,0,0],"cuoo_zong_FCZ":[1,0,0,1,1,0,0,0,0],"hu_FH_5dim":[0,0,-1,-1,0],"bian_FB":[0,0,1,0,-1,0,0,0,-1]},"members":[2956,9732,12059,19559],"neighbors":[{"i": 9732, "d": 0.0, "v": "0000--00-"}, {"i": 3171, "d": 1.0, "v": "-000--00-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}, {"i": 9003, "d": 1.0, "v": "00-0--00-"}, {"i": 9489, "d": 1.0, "v": "000---00-"}]},
-  {"text":"公司连续亏损不知是否继续","v":[0,-1,0,0,-1,0,0,0,-1],"c":[0.966,0.999,1.0,0.994,1.0,0.998,0.992,0.993,1.0],"idx":7572,"rep":3196,"mode":"habit","freq":12,"rec":"习惯模式：推荐复用「strategic_rethink」（历史 7 次，成功率 100%）。","tr":{"cuoo_FC":[0,1,0,0,1,0,0,0,1],"zong_FZ":[-1,0,0,0,-1,0,0,-1,0],"cuoo_zong_FCZ":[1,0,0,0,1,0,0,1,0],"hu_FH_5dim":[0,0,-1,0,0],"bian_FB":[0,-1,0,0,0,0,0,0,-1]},"members":[3196,7572,12098,17338],"neighbors":[{"i": 7572, "d": 0.0, "v": "0-00-000-"}, {"i": 1011, "d": 1.0, "v": "--00-000-"}, {"i": 6843, "d": 1.0, "v": "0--0-000-"}, {"i": 7329, "d": 1.0, "v": "0-0--000-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}]},
-  {"text":"业务进入爆发式增长期","v":[1,1,1,1,1,0,1,1,0],"c":[1.0,0.982,1.0,1.0,1.0,0.894,1.0,1.0,1.0],"idx":19654,"rep":28,"mode":"habit","freq":11,"rec":"习惯模式：推荐复用「scale_up」（历史 5 次，成功率 100%）。","tr":{"cuoo_FC":[-1,-1,-1,-1,-1,0,-1,-1,0],"zong_FZ":[0,1,1,0,1,1,1,1,1],"cuoo_zong_FCZ":[0,-1,-1,0,-1,-1,-1,-1,-1],"hu_FH_5dim":[1,1,1,0,1],"bian_FB":[1,0,1,1,1,0,1,1,0]},"members":[28,19654,29554,39490],"neighbors":[{"i": 19654, "d": 0.0, "v": "+++++0++0"}, {"i": 13093, "d": 1.0, "v": "0++++0++0"}, {"i": 17467, "d": 1.0, "v": "+0+++0++0"}, {"i": 18925, "d": 1.0, "v": "++0++0++0"}, {"i": 19411, "d": 1.0, "v": "+++0+0++0"}]},
-  {"text":"按时上线了核心模块","v":[1,1,1,1,1,0,1,1,1],"c":[1.0,1.0,1.0,1.0,1.0,0.999,1.0,0.993,0.999],"idx":19655,"rep":27,"mode":"explore","freq":2,"rec":"等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。","tr":{"cuoo_FC":[-1,-1,-1,-1,-1,0,-1,-1,-1],"zong_FZ":[1,1,1,0,1,1,1,1,1],"cuoo_zong_FCZ":[-1,-1,-1,0,-1,-1,-1,-1,-1],"hu_FH_5dim":[1,1,1,0,1],"bian_FB":[1,1,1,1,1,0,1,1,0]},"members":[27,19655,29555,39491],"neighbors":[{"i": 19655, "d": 0.0, "v": "+++++0+++"}, {"i": 13094, "d": 1.0, "v": "0++++0+++"}, {"i": 17468, "d": 1.0, "v": "+0+++0+++"}, {"i": 18926, "d": 1.0, "v": "++0++0+++"}, {"i": 19412, "d": 1.0, "v": "+++0+0+++"}]},
-  {"text":"静心打坐安顿身心","v":[0,0,0,0,0,0,1,1,0],"c":[0.995,0.873,0.782,0.984,0.971,1.0,0.78,0.96,0.976],"idx":9853,"rep":6925,"mode":"explore","freq":0,"rec":"等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。","tr":{"cuoo_FC":[0,0,0,0,0,0,-1,-1,0],"zong_FZ":[0,1,1,0,0,0,0,0,0],"cuoo_zong_FCZ":[0,-1,-1,0,0,0,0,0,0],"hu_FH_5dim":[0,0,0,0,1],"bian_FB":[0,0,0,0,0,0,0,1,0]},"members":[6925,9853,12849,13039],"neighbors":[{"i": 9853, "d": 0.0, "v": "000000++0"}, {"i": 3292, "d": 1.0, "v": "-00000++0"}, {"i": 7666, "d": 1.0, "v": "0-0000++0"}, {"i": 9124, "d": 1.0, "v": "00-000++0"}, {"i": 9610, "d": 1.0, "v": "000-00++0"}]},
-  {"text":"深入研究一个新领域","v":[1,1,0,1,0,0,1,1,1],"c":[0.999,0.997,0.998,0.993,0.96,0.837,0.996,0.977,0.781],"idx":18845,"rep":333,"mode":"explore","freq":1,"rec":"等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。","tr":{"cuoo_FC":[-1,-1,0,-1,0,0,-1,-1,-1],"zong_FZ":[1,1,1,0,0,1,0,1,1],"cuoo_zong_FCZ":[-1,-1,-1,0,0,-1,0,-1,-1],"hu_FH_5dim":[0,1,0,0,1],"bian_FB":[1,1,0,0,0,0,1,1,1]},"members":[333,18845,20549,32579],"neighbors":[{"i": 18845, "d": 0.0, "v": "++0+00+++"}, {"i": 12284, "d": 1.0, "v": "0+0+00+++"}, {"i": 16658, "d": 1.0, "v": "+00+00+++"}, {"i": 18116, "d": 1.0, "v": "++-+00+++"}, {"i": 18602, "d": 1.0, "v": "++0000+++"}]}
-];
+const DATA = [{"text": "用户投诉产品有严重问题", "v": [0, -1, 0, 0, -1, 0, -1, 0, -1], "c": [0.99, 0.998, 0.994, 1.0, 1.0, 0.997, 0.999, 0.999, 1.0], "idx": 7563, "rep": 2467, "mode": "habit", "freq": 9, "rec": "习惯模式：推荐复用「crisis_response」（历史 4 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 1, 0, 1], "zong_FZ": [-1, 0, -1, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 1, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, -1], "bian_FB": [0, -1, 0, 0, 0, 0, -1, 0, -1]}, "members": [2467, 7563, 12119, 17215], "neighbors": [{"i": 7563, "d": 0.0, "v": "0-00-0-0-"}, {"i": 1002, "d": 1.0, "v": "--00-0-0-"}, {"i": 6834, "d": 1.0, "v": "0--0-0-0-"}, {"i": 7320, "d": 1.0, "v": "0-0--0-0-"}, {"i": 7536, "d": 1.0, "v": "0-00---0-"}], "drive": {"tensions": [], "signals": []}}, {"text": "从零打造一个全新产品", "v": [1, 1, 1, 1, 0, 0, 0, 0, 0], "c": [0.987, 0.985, 0.946, 1.0, 1.0, 1.0, 0.878, 0.983, 0.995], "idx": 19561, "rep": 121, "mode": "habit", "freq": 3, "rec": "习惯模式：推荐复用「creative_build」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, 0, 0, 0, 0, 0], "zong_FZ": [0, 0, 0, 0, 0, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, 0, 0, 0, 0, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 0, 0, 0], "bian_FB": [0, 1, 1, 1, 0, 0, 0, 0, 0]}, "members": [121, 9801, 9881, 19561], "neighbors": [{"i": 19561, "d": 0.0, "v": "++++00000"}, {"i": 13000, "d": 1.0, "v": "0+++00000"}, {"i": 17374, "d": 1.0, "v": "+0++00000"}, {"i": 18832, "d": 1.0, "v": "++0+00000"}, {"i": 19318, "d": 1.0, "v": "+++000000"}], "drive": {"tensions": [], "signals": []}}, {"text": "团队内部互相推诿没人干活", "v": [0, 0, 0, 0, -1, -1, 0, 0, -1], "c": [0.992, 0.539, 1.0, 1.0, 0.979, 0.77, 0.966, 1.0, 0.999], "idx": 9732, "rep": 2956, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 1, 1, 0, 0, 1], "zong_FZ": [-1, 0, 0, -1, -1, 0, 0, 0, 0], "cuoo_zong_FCZ": [1, 0, 0, 1, 1, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, -1, -1, 0], "bian_FB": [0, 0, 1, 0, -1, 0, 0, 0, -1]}, "members": [2956, 9732, 9950, 16726], "neighbors": [{"i": 9732, "d": 0.0, "v": "0000--00-"}, {"i": 3171, "d": 1.0, "v": "-000--00-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}, {"i": 9003, "d": 1.0, "v": "00-0--00-"}, {"i": 9489, "d": 1.0, "v": "000---00-"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}, {"type": "boundary", "strength": 0.6, "note": "第 [2] 维判断置信度偏低，边界模糊"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}, {"type": "deliberation", "strength": 0.6, "text": "当前判断在多个邻近卦位/维度间摇摆（置信度不足或边界接近）。注入「深思动力」：不要急于定论，先对每个候选做更审慎的权衡，量化不确定性后再决策。"}]}}, {"text": "公司连续亏损不知是否继续", "v": [0, -1, 0, 0, -1, 0, 0, 0, -1], "c": [0.966, 0.999, 1.0, 0.994, 1.0, 0.998, 0.992, 0.993, 1.0], "idx": 7572, "rep": 3196, "mode": "habit", "freq": 12, "rec": "习惯模式：推荐复用「strategic_rethink」（历史 7 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 0, 0, 1], "zong_FZ": [-1, 0, 0, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 0, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, 0], "bian_FB": [0, -1, 0, 0, 0, 0, 0, 0, -1]}, "members": [3196, 7572, 12110, 16486], "neighbors": [{"i": 7572, "d": 0.0, "v": "0-00-000-"}, {"i": 1011, "d": 1.0, "v": "--00-000-"}, {"i": 6843, "d": 1.0, "v": "0--0-000-"}, {"i": 7329, "d": 1.0, "v": "0-0--000-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}], "drive": {"tensions": [], "signals": []}}, {"text": "业务进入爆发式增长期", "v": [1, 1, 1, 1, 1, 0, 1, 1, 0], "c": [1.0, 0.982, 1.0, 1.0, 1.0, 0.894, 1.0, 1.0, 1.0], "idx": 19654, "rep": 28, "mode": "habit", "freq": 11, "rec": "习惯模式：推荐复用「scale_up」（历史 5 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 0, 1, 1, 1, 0, 1, 1, 0]}, "members": [28, 6804, 12878, 19654], "neighbors": [{"i": 19654, "d": 0.0, "v": "+++++0++0"}, {"i": 13093, "d": 1.0, "v": "0++++0++0"}, {"i": 17467, "d": 1.0, "v": "+0+++0++0"}, {"i": 18925, "d": 1.0, "v": "++0++0++0"}, {"i": 19411, "d": 1.0, "v": "+++0+0++0"}], "drive": {"tensions": [], "signals": []}}, {"text": "按时上线了核心模块", "v": [1, 1, 1, 1, 1, 0, 1, 1, 1], "c": [1.0, 1.0, 1.0, 1.0, 1.0, 0.999, 1.0, 0.993, 0.999], "idx": 19655, "rep": 27, "mode": "explore", "freq": 2, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 1, 1, 1, 1, 0, 1, 1, 0]}, "members": [27, 243, 19439, 19655], "neighbors": [{"i": 19655, "d": 0.0, "v": "+++++0+++"}, {"i": 13094, "d": 1.0, "v": "0++++0+++"}, {"i": 17468, "d": 1.0, "v": "+0+++0+++"}, {"i": 18926, "d": 1.0, "v": "++0++0+++"}, {"i": 19412, "d": 1.0, "v": "+++0+0+++"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.6, "note": "等价类经验不足（命中 2 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.6, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}}, {"text": "静心打坐安顿身心", "v": [0, 0, 0, 0, 0, 0, 1, 1, 0], "c": [0.995, 0.873, 0.782, 0.984, 0.971, 1.0, 0.78, 0.96, 0.976], "idx": 9853, "rep": 6925, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 0, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 0, 0, 0, 0, 0], "cuoo_zong_FCZ": [0, -1, -1, 0, 0, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, 0, 0, 1], "bian_FB": [0, 0, 0, 0, 0, 0, 0, 1, 0]}, "members": [6925, 9829, 9853, 12757], "neighbors": [{"i": 9853, "d": 0.0, "v": "000000++0"}, {"i": 3292, "d": 1.0, "v": "-00000++0"}, {"i": 7666, "d": 1.0, "v": "0-0000++0"}, {"i": 9124, "d": 1.0, "v": "00-000++0"}, {"i": 9610, "d": 1.0, "v": "000-00++0"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}}, {"text": "深入研究一个新领域", "v": [1, 1, 0, 1, 0, 0, 1, 1, 1], "c": [0.999, 0.997, 0.998, 0.993, 0.96, 0.837, 0.996, 0.977, 0.781], "idx": 18845, "rep": 333, "mode": "habit", "freq": 4, "rec": "习惯模式：推荐复用「llm_reasoning」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, 0, -1, 0, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 0, 1, 0, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, 0, -1, 0, -1, -1], "hu_FH_5dim": [0, 1, 0, 0, 1], "bian_FB": [1, 1, 0, 0, 0, 0, 1, 1, 1]}, "members": [333, 837, 18845, 19349], "neighbors": [{"i": 18845, "d": 0.0, "v": "++0+00+++"}, {"i": 12284, "d": 1.0, "v": "0+0+00+++"}, {"i": 16658, "d": 1.0, "v": "+00+00+++"}, {"i": 18116, "d": 1.0, "v": "++-+00+++"}, {"i": 18602, "d": 1.0, "v": "++0000+++"}], "drive": {"tensions": [], "signals": []}}];
+
+const TOPO = {"active": 58, "records": 142, "merges": [{"a": 1, "b": 28, "similarity": 0.934, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 333, "b": 838, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 333, "b": 3025, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 838, "b": 3025, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 2953, "b": 3439, "similarity": 0.802, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 3199, "b": 7651, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}], "splits": [{"class_rep": 3439, "entropy": 1.459, "main_action": "team_repair", "main_share": 0.5, "n_actions": 3, "records": 6, "note": "类内行为分歧大，可能包含多个子认知簇，建议拆分"}]};
 
 let cur = 0;
 const $ = id => document.getElementById(id);
@@ -323,8 +337,25 @@ function render(){
 
   // 邻域
   $("nbs").innerHTML = d.neighbors.length ? d.neighbors.map(n=>
-    `<div class="nb-row"><span class="nb-i">#${n.idx}</span><span class="nb-v">${n.v.split("").join(" ")}</span><span class="nb-d">欧氏距离 ${n.d}</span></div>`
+    `<div class="nb-row"><span class="nb-i">#${n.idx ?? n.i}</span><span class="nb-v">${n.v.split("").join(" ")}</span><span class="nb-d">欧氏距离 ${n.d}</span></div>`
   ).join("") : `<div style="font-size:12px;color:var(--muted)">本预设未缓存邻域明细 · 实时 /cognition 接口返回 Top-N 邻近卦位</div>`;
+
+  // 认知动力：张力 → 信号
+  const dp = $("drivePanel");
+  const tens = d.drive.tensions || [];
+  const sigs = d.drive.signals || [];
+  const TENS_LABEL = {novelty:["新奇张力","探索"],boundary:["边界张力","权衡"],habit_conflict:["习惯冲突","质疑"]};
+  if (sigs.length) {
+    dp.innerHTML = tens.map(t=>{
+      const L = TENS_LABEL[t.type] || [t.type,t.type];
+      return `<div class="drive-t"><span class="dt-badge">${L[0]}</span><span class="dt-note">${t.note}</span></div>`;
+    }).join("") + sigs.map(s=>{
+      const L = TENS_LABEL[s.type] || [s.type,s.type];
+      return `<div class="drive-s"><span class="ds-badge">${L[1]}动力</span><span class="ds-txt">${s.text.slice(0,40)}…</span></div>`;
+    }).join("");
+  } else {
+    dp.innerHTML = `<div class="drive-s" style="border-color:rgba(212,175,110,.4)"><span class="ds-badge" style="background:var(--gold);color:#0b0c10">稳定</span><span class="ds-txt" style="color:var(--ink)">习惯可复用，无需额外动力注入。</span></div>`;
+  }
 
   // 任务按钮高亮
   document.querySelectorAll(".task-btn").forEach((b,i)=>b.classList.toggle("active",i===cur));
@@ -340,8 +371,34 @@ function renderTasks(){
   });
 }
 
+// 动态等价拓扑渲染
+function renderTopo(){
+  const p = $("topoPanel");
+  let html = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="loc k" style="width:auto;padding:8px 14px"><div class="kl">活跃类</div><div class="kv" style="font-size:15px">${TOPO.active}</div></div>
+      <div class="loc k" style="width:auto;padding:8px 14px"><div class="kl">轨迹</div><div class="kv" style="font-size:15px">${TOPO.records}</div></div>
+      <div class="loc k" style="width:auto;padding:8px 14px"><div class="kl">合并候选</div><div class="kv" style="font-size:15px">${TOPO.merges.length}</div></div>
+      <div class="loc k" style="width:auto;padding:8px 14px"><div class="kl">拆分候选</div><div class="kv" style="font-size:15px">${TOPO.splits.length}</div></div>
+    </div>`;
+
+  // 合并候选
+  html += `<div style="margin-bottom:6px;font-size:11px;letter-spacing:.2em;color:var(--gold-dim)">行为层合并 · 符号层未见的等价</div>`;
+  html += TOPO.merges.length ? TOPO.merges.map(m=>
+    `<div class="nb-row"><span class="nb-i">#${m.a} ⊕ #${m.b}</span><span class="nb-v" style="font-size:11px">行为分布相似度 ${(m.similarity*100).toFixed(0)}%</span><span class="nb-d">成功率 ${m.succ_a*100|0}%</span></div>`
+  ).join("") : `<div style="font-size:12px;color:var(--muted)">暂无合并候选</div>`;
+
+  // 拆分候选
+  html += `<div style="margin:14px 0 6px;font-size:11px;letter-spacing:.2em;color:var(--gold-dim)">类内拆分 · 子认知簇</div>`;
+  html += TOPO.splits.length ? TOPO.splits.map(s=>
+    `<div class="nb-row"><span class="nb-i">#${s.class_rep}</span><span class="nb-v" style="font-size:11px">熵 ${s.entropy} · 主行为 ${s.main_action} ${(s.main_share*100)|0}%</span><span class="nb-d">${s.n_actions} 种行为</span></div>`
+  ).join("") : `<div style="font-size:12px;color:var(--muted)">暂无拆分候选</div>`;
+
+  p.innerHTML = html;
+}
+
 renderTasks();
 render();
+renderTopo();
 </script>
 </body>
 </html>

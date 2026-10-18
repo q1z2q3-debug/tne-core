@@ -185,6 +185,14 @@ def cognition_endpoint(req: CognitionRequest):
         for ni, d, ng in nearest_neighbors(vector, top_n=req.top_n)
     ]
 
+    # 认知动力引擎：张力检测 → 动力信号
+    drive = None
+    try:
+        from tne.drive.tension import detect_and_generate
+        drive = detect_and_generate(hb, jr["confidence"], neighbors)
+    except Exception:
+        drive = None
+
     return {
         "text": req.text,
         "vector": vector,
@@ -197,4 +205,5 @@ def cognition_endpoint(req: CognitionRequest):
         "transform": transform,
         "habit": hb,
         "neighbors": neighbors,
+        "drive": drive,
     }
