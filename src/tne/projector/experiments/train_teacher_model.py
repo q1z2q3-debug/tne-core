@@ -78,9 +78,22 @@ def embed_cls(tok, base, texts, max_len=64):
     return out.last_hidden_state[:, 0, :]
 
 
+def embed_cls_batched(tok, base, texts, max_len=64, batch=64):
+    """分批预计算 CLS embedding（避免大 batch 内存/卡顿）。"""
+    embs = []
+    for i in range(0, len(texts), batch):
+        enc = tok(texts[i:i+batch], padding=True, truncation=True,
+                  max_length=max_len, return_tensors="pt")
+        with torch.no_grad():
+            out = base(**enc)
+        embs.append(out.last_hidden_state[:, 0, :])
+    return torch.cat(embs, dim=0)
+
+
 def train(args):
     torch.manual_seed(args.seed)
-    data = json.load(open(DATA_PATH, encoding="utf-8"))["samples"]
+    data_path = args.data
+    data = json.load(open(data_path, encoding="utf-8"))["samples"]
     n = len(data)
     print(f"教师种子数据: {n} 条")
 
@@ -112,9 +125,9 @@ def train(args):
     if args.finetune_layers == 0:
         # 模式1：冻结 base，预计算 embedding，只训 head（快）
         print(f"\n[训练 head（base 冻结）· epochs={args.epochs} lr={args.lr}]")
-        train_emb = embed_cls(tok, base, [s["text"] for s in train_d])
-        val_emb = embed_cls(tok, base, [s["text"] for s in val_d])
-        test_emb = embed_cls(tok, base, tests)
+        train_emb = embed_cls_batched(tok, base, [s["text"] for s in train_d])
+        val_emb = embed_cls_batched(tok, base, [s["text"] for s in val_d])
+        test_emb = embed_cls_batched(tok, base, tests)
         best_val, best_state = -1, None
         for ep in range(args.epochs):
             model.train()
@@ -212,6 +225,8 @@ def main():
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--model_path", type=str, default=MODEL_PATH,
                     help="embedding 模型路径（默认 MiniLM，可选 bge）")
+    ap.add_argument("--data", type=str, default=DATA_PATH,
+                    help="教师数据路径（默认 298 条，可选 full 19683 条）")
     args = ap.parse_args()
     train(args)
 
