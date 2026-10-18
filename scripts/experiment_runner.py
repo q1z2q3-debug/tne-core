@@ -11,7 +11,7 @@
   - 结论如实: 不显著就报告"无关联"
 数据: 腾讯 fqkline 前复权日K, 缓存 tmp/kline/
 """
-import os, sys, json, glob, datetime
+import os, sys, json, glob, datetime, time
 import numpy as np
 import pandas as pd
 import urllib.request
@@ -38,6 +38,19 @@ def mkt(c):
     return "sh" if c.startswith(("60", "68")) else "sz"
 
 
+def _get_json(url, retries=3):
+    """带重试的GET(腾讯批量连续请求易触发501限流)。"""
+    last = None
+    for i in range(retries):
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            return json.loads(urllib.request.urlopen(req, timeout=20).read().decode("utf-8"))
+        except Exception as e:  # noqa: BLE001
+            last = e
+            time.sleep(0.8 * (i + 1))
+    raise last
+
+
 def band(v, up, dn):
     return 1 if v >= up else (-1 if v <= dn else 0)
 
@@ -55,7 +68,7 @@ def fetch_kline(code):
     url = (f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?"
            f"param={mkt(code)}{code},day,2020-01-01,2026-12-31,640,qfq")
     req = urllib.request.Request(url, headers=UA)
-    d = json.loads(urllib.request.urlopen(req, timeout=20).read().decode("utf-8"))
+    d = _get_json(url)
     node = d["data"][f"{mkt(code)}{code}"]
     kl = node.get("qfqday") or node.get("day") or []  # 科创板(688)可能用day字段
     rows = [[k[0], float(k[2])] for k in kl]
@@ -162,9 +175,80 @@ def run(pool):
     df = pd.DataFrame(rows)
     print(f"有效观测: {len(df)} 行 ({df['date'].nunique()} 个截面 × {df['code'].nunique()} 只)")
     print(f"未来收益分布: ret20 mean {df['ret20'].mean()*100:+.2f}%/20d, ret60 mean {df['ret60'].mean()*100:+.2f}%/60d")
+    analyze(df, "日K", 250 / 60)
 
-    # ---- 检验A: 主态分层单调性 ----
-    print("\n[检验A] 主态分层 · 未来收益")
+
+def fetch_weekly(code):
+    """拉周K(2015至今, 640周≈12年)并缓存。返回 DataFrame[date,close]。
+    用后复权(hfq): 价格恒正, 避免qfq前复权把历史价推成负值(污染收益)。"""
+    path = os.path.join(CACHE, f"{code}_week.json")
+    if os.path.exists(path):
+        raw = json.load(open(path, encoding="utf-8"))
+        df = pd.DataFrame(raw)
+        df["date"] = pd.to_datetime(df["date"])
+        return df
+    os.makedirs(CACHE, exist_ok=True)
+    url = (f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?"
+           f"param={mkt(code)}{code},week,2015-01-01,2026-12-31,640,hfq")
+    req = urllib.request.Request(url, headers=UA)
+    d = _get_json(url)
+    node = d["data"][f"{mkt(code)}{code}"]
+    kl = node.get("hfqweek") or node.get("week") or []
+    rows = [[k[0], float(k[2])] for k in kl]
+    df = pd.DataFrame(rows, columns=["date", "close"])
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date").drop_duplicates("date")
+    # 数据质量护栏: 剔除非正价格(后复权下正常全>0)
+    df = df[df["close"] > 0]
+    json.dump({"date": df["date"].dt.strftime("%Y-%m-%d").tolist(),
+               "close": df["close"].tolist()}, open(path, "w", encoding="utf-8"))
+    return df
+
+
+def run_long(pool):
+    """长历史模式: 周K(≈12年)重建三趋势维(g1/g5/g9), 每4周一个截面。
+    周K无日内, g2 置0; ret20=未来4周, ret60=未来12周(近60交易日)。"""
+    print(f"拉取周K({len(pool)}只, 长历史) ...")
+    frames = {}
+    for c in pool:
+        frames[c] = fetch_weekly(c).set_index("date")["close"]
+    close = pd.concat(frames, axis=1).sort_index().dropna(how="all")
+    close.columns = pool
+    print(f"周K区间: {close.index[0].date()} ~ {close.index[-1].date()}  共{len(close)}周")
+
+    rows = []
+    for i in range(52, len(close), 4):  # 每4周=月频截面
+        p0row = close.iloc[i]
+        if i + 12 >= len(close):
+            break
+        raws = {}
+        for c in pool:
+            p = close[c].values
+            p0 = p[i]
+            if np.isnan(p0) or np.isnan(p[i - 52]) or np.isnan(p[i + 12]):
+                continue
+            raws[c] = {"g1": p0 / p[i - 4] - 1, "g5": p0 / p[i - 2] - 1,
+                       "g9": p0 / p[i - 52] - 1,
+                       "ret20": p[i + 4] / p0 - 1, "ret60": p[i + 12] / p0 - 1}
+        if len(raws) < 8:
+            continue
+        med = {k: float(np.median([r[k] for r in raws.values()])) for k in ("g1", "g5", "g9")}
+        for c, v in raws.items():
+            g = {k: band(v[k] - med[k], *REL_THR[k]) for k in ("g1", "g5", "g9")}
+            g["g2"] = 0  # 周K无日内
+            tscore3 = g["g1"] + g["g5"] + g["g9"]
+            mode = "strong" if tscore3 >= 1 else ("weak" if tscore3 <= -1 else "neutral")
+            rows.append({**g, "mode": mode, "tscore3": tscore3,
+                         "ret20": v["ret20"], "ret60": v["ret60"],
+                         "date": close.index[i].date(), "code": c})
+    df = pd.DataFrame(rows)
+    print(f"有效观测: {len(df)} 行 ({df['date'].nunique()} 个截面 × {df['code'].nunique()} 只)")
+    print(f"未来收益(周): ret4w mean {df['ret20'].mean()*100:+.2f}%, ret12w mean {df['ret60'].mean()*100:+.2f}%")
+    analyze(df, "周K长历史", 52 / 12)
+
+
+def analyze(df, src, ann_period):
+    print(f"\n[检验A] 主态分层 · 未来收益 ({src})")
     grp = df.groupby("mode")[["ret20", "ret60", "tscore3"]].mean().reindex(["strong", "neutral", "weak"])
     grp["n"] = df.groupby("mode").size().reindex(["strong", "neutral", "weak"])
     for col in ("ret20", "ret60"):
@@ -211,8 +295,9 @@ def run(pool):
           f"IR={arr.mean()/(arr.std()+1e-9):+.2f} ({len(arr)}截面)")
 
     # ---- 检验D: 双重固定效应面板回归(股票+日期) + 聚类稳健SE ----
-    print("\n[检验D] 双重固定效应面板回归 ret60 ~ tscore3(+g2对照)")
-    reg = panel_fe(df, dep="ret60", indep=["tscore3", "g2"])
+    indep = ["tscore3"] + (["g2"] if df["g2"].nunique() > 1 else [])  # g2恒定(周K)时剔除
+    print(f"\n[检验D] 双重固定效应面板回归 ret60 ~ {'+'.join(indep)} ({src})")
+    reg = panel_fe(df, dep="ret60", indep=indep)
     for name, b, se, t, p in reg:
         sig = "显著" if p < 0.05 else "不显著"
         print(f"  {name:10s} coef={b:+.4f}  SE={se:.4f}  t={t:+.2f}  p={p:.4f}  {sig}")
@@ -224,7 +309,7 @@ def run(pool):
     for _ in range(200):
         dd = df.copy()
         dd["tscore3"] = rng2.permutation(dd["tscore3"].values)
-        regr = panel_fe(dd, dep="ret60", indep=["tscore3", "g2"])
+        regr = panel_fe(dd, dep="ret60", indep=indep)
         fe_coefs.append([r[1] for r in regr if r[0] == "tscore3"][0])
     farr = np.array(fe_coefs)
     pct2 = (farr < real_coef).mean()
@@ -250,7 +335,7 @@ def run(pool):
     legs["spread"] = legs["long_weak"] - legs["short_strong"]  # 做弱空强
     spr = legs["spread"]
     t, p = stats.ttest_1samp(spr, 0)
-    ann = (1 + spr.mean()) ** (250 / 60) - 1
+    ann = (1 + spr.mean()) ** ann_period - 1
     win = (spr > 0).mean()
     print("\n[检验E] 反转多空组合(做弱/空强) · ret60")
     print(f"  截面数={len(spr)}  平均多空spread={spr.mean()*100:+.2f}pp/60d  年化≈{ann*100:+.1f}%")
@@ -305,6 +390,10 @@ def run(pool):
 
 if __name__ == "__main__":
     pool = POOL
-    if len(sys.argv) > 1 and sys.argv[1] == "--all":
+    if len(sys.argv) > 1 and sys.argv[1] == "--long":
+        run_long(pool)
+    elif len(sys.argv) > 1 and sys.argv[1] == "--all":
         pool = POOL + ["002594", "000651", "000333"]
-    run(pool)
+        run(pool)
+    else:
+        run(pool)
