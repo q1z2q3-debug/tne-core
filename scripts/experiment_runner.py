@@ -232,6 +232,52 @@ def run(pool):
           f"| 真实系数({real_coef:+.4f})位于随机之下 {pct2*100:.1f}% 分位 "
           f"{'显著非偶然' if pct2>0.95 or pct2<0.05 else '无信号'}")
 
+    # ---- 检验E: 反转多空组合回测(把FE负系数变成可操作信号) ----
+    # 反转信号 = 个股当前tscore3 - 个股历史习惯水平(个股内相对偏强程度)
+    df["rev"] = df["tscore3"] - df.groupby("code")["tscore3"].transform("mean")
+    legs = []
+    for dt, sub in df.groupby("date"):
+        if len(sub) < 12:
+            continue
+        sub = sub.sort_values("rev")
+        third = max(1, len(sub) // 3)
+        weak = sub.iloc[:third]      # 当前最弱于自身习惯 → 反转做多
+        strong = sub.iloc[-third:]   # 当前最强于自身习惯 → 反转做空
+        legs.append({"date": dt,
+                     "long_weak": weak["ret60"].mean(),
+                     "short_strong": strong["ret60"].mean()})
+    legs = pd.DataFrame(legs)
+    legs["spread"] = legs["long_weak"] - legs["short_strong"]  # 做弱空强
+    spr = legs["spread"]
+    t, p = stats.ttest_1samp(spr, 0)
+    ann = (1 + spr.mean()) ** (250 / 60) - 1
+    win = (spr > 0).mean()
+    print("\n[检验E] 反转多空组合(做弱/空强) · ret60")
+    print(f"  截面数={len(spr)}  平均多空spread={spr.mean()*100:+.2f}pp/60d  年化≈{ann*100:+.1f}%")
+    print(f"  t={t:.2f} p={p:.4f}  胜率={win*100:.0f}%  累计={((1+spr).cumprod().iloc[-1]-1)*100:+.1f}%")
+    print(f"  对照·做弱组均值={legs['long_weak'].mean()*100:+.2f}%  做空组均值={legs['short_strong'].mean()*100:+.2f}%")
+
+    # ---- 检验E'基线: 打乱tscore3重算反转spread ----
+    rng3 = np.random.default_rng(11)
+    spreads = []
+    for _ in range(200):
+        dd = df.copy()
+        dd["tscore3"] = rng3.permutation(dd["tscore3"].values)
+        dd["rev"] = dd["tscore3"] - dd.groupby("code")["tscore3"].transform("mean")
+        sl = []
+        for dt, sub in dd.groupby("date"):
+            if len(sub) < 12:
+                continue
+            sub = sub.sort_values("rev")
+            third = max(1, len(sub) // 3)
+            sl.append(sub.iloc[:third]["ret60"].mean() - sub.iloc[-third]["ret60"].mean())
+        spreads.append(np.mean(sl) if sl else np.nan)
+    sarr = np.array([x for x in spreads if not np.isnan(x)])
+    pct3 = (sarr < spr.mean()).mean()
+    print(f"\n[检验E'基线] 200次打乱tscore3的反转spread分布: 均值{sarr.mean()*100:+.2f}pp std{sarr.std()*100:.2f}pp "
+          f"| 真实spread({spr.mean()*100:+.2f}pp)位于随机之上 {pct3*100:.1f}% 分位 "
+          f"{'有信号(>95%)' if pct3>0.95 else '无信号'}")
+
     # ---- 随机基线: 打乱态重算IC ----
     rng = np.random.default_rng(42)
     rand_ics = []
