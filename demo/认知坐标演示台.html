@@ -65,6 +65,26 @@
   /* ---------- 九宫格 ---------- */
   .gua-wrap{display:flex;gap:22px;align-items:flex-start}
   .grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:1;min-width:0}
+  /* 内化 vs 外挂 判定对比 */
+  .cmp-strip{margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:11px}
+  .cmp-row{display:flex;align-items:center;gap:8px}
+  .cmp-tag{flex:none;font-size:9.5px;letter-spacing:.08em;padding:2px 7px;border-radius:3px;color:#0b0c10;font-weight:700}
+  .cmp-tag.enc{background:rgba(107,135,184,.85)}
+  .cmp-tag.dis{background:var(--gold)}
+  .cmp-code{font-family:ui-monospace,monospace;letter-spacing:.18em;color:var(--ink)}
+  .cmp-mono{font-family:ui-monospace,monospace;color:var(--muted)}
+  .cmp-rate{margin-left:auto;font-size:10.5px;color:var(--gold-dim)}
+  .cmp-legend{margin-top:2px;font-size:9.5px;color:var(--muted);letter-spacing:.05em}
+  /* 六模块全景 */
+  .mod-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0 6px}
+  .mod{text-align:center;padding:10px 6px;border:1px solid var(--line2);border-radius:5px;background:var(--surface2);position:relative}
+  .mod .m-ic{font-size:11px;letter-spacing:.2em;color:var(--gold-dim);display:block;margin-bottom:5px}
+  .mod .m-n{font-size:12px;color:var(--ink);font-weight:600}
+  .mod .m-d{font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.03em}
+  .mod.done{border-color:rgba(212,175,110,.45)}
+  .mod.done::after{content:"";position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .mod-arrow{position:relative}
+  @media(max-width:760px){.mod-strip{grid-template-columns:repeat(3,1fr)}}
   .cell{aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:center;
     background:var(--surface2);border:1px solid var(--line2);border-radius:5px;position:relative;transition:border-color .18s}
   .cell .sym{font-size:24px;font-weight:400;line-height:1}
@@ -214,6 +234,8 @@
         <div class="l l3">根基层</div>
       </div>
     </div>
+    <!-- 内化 vs 外挂 判定对比 -->
+    <div class="cmp-strip" id="cmpStrip"></div>
     <div class="conf" id="conf"></div>
     <div style="margin-top:16px">
       <h3 style="margin-bottom:8px">等价类成员</h3>
@@ -253,6 +275,17 @@
   </div>
 </section>
 
+<!-- 六模块认知引擎全景 -->
+<section style="max-width:1280px;margin:0 auto;padding:20px 32px 0">
+  <div class="panel" style="padding:20px">
+    <h3 style="margin-bottom:4px">认知引擎 · 六模块全景</h3>
+    <div style="font-size:12.5px;color:var(--muted);line-height:1.8">
+      从相空间内核到内化解码器，六模块构成"任务→定位→轨迹→习惯→张力→动力→内化"的自运转闭环。<b style="color:var(--gold-dim)">全部闭环</b>。
+    </div>
+    <div id="modsPanel"></div>
+  </div>
+</section>
+
 <footer class="foot">
   <h2>体系公理 · <span class="accent">算子</span></h2>
   <div class="axiom-grid">
@@ -282,7 +315,7 @@ const SEM = ["愿景","决断","产出","方法","主态","协作","输入","积
 const LAYERS = ["显化层","转承层","根基层"];
 const SYM = {1:"生",0:"衡","-1":"敛"};
 
-const DATA = [{"text": "用户投诉产品有严重问题", "v": [0, -1, 0, 0, -1, 0, -1, 0, -1], "c": [0.99, 0.998, 0.994, 1.0, 1.0, 0.997, 0.999, 0.999, 1.0], "idx": 7563, "rep": 2467, "mode": "habit", "freq": 9, "rec": "习惯模式：推荐复用「crisis_response」（历史 4 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 1, 0, 1], "zong_FZ": [-1, 0, -1, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 1, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, -1], "bian_FB": [0, -1, 0, 0, 0, 0, -1, 0, -1]}, "members": [2467, 7563, 12119, 17215], "neighbors": [{"i": 7563, "d": 0.0, "v": "0-00-0-0-"}, {"i": 1002, "d": 1.0, "v": "--00-0-0-"}, {"i": 6834, "d": 1.0, "v": "0--0-0-0-"}, {"i": 7320, "d": 1.0, "v": "0-0--0-0-"}, {"i": 7536, "d": 1.0, "v": "0-00---0-"}], "drive": {"tensions": [], "signals": []}}, {"text": "从零打造一个全新产品", "v": [1, 1, 1, 1, 0, 0, 0, 0, 0], "c": [0.987, 0.985, 0.946, 1.0, 1.0, 1.0, 0.878, 0.983, 0.995], "idx": 19561, "rep": 121, "mode": "habit", "freq": 3, "rec": "习惯模式：推荐复用「creative_build」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, 0, 0, 0, 0, 0], "zong_FZ": [0, 0, 0, 0, 0, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, 0, 0, 0, 0, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 0, 0, 0], "bian_FB": [0, 1, 1, 1, 0, 0, 0, 0, 0]}, "members": [121, 9801, 9881, 19561], "neighbors": [{"i": 19561, "d": 0.0, "v": "++++00000"}, {"i": 13000, "d": 1.0, "v": "0+++00000"}, {"i": 17374, "d": 1.0, "v": "+0++00000"}, {"i": 18832, "d": 1.0, "v": "++0+00000"}, {"i": 19318, "d": 1.0, "v": "+++000000"}], "drive": {"tensions": [], "signals": []}}, {"text": "团队内部互相推诿没人干活", "v": [0, 0, 0, 0, -1, -1, 0, 0, -1], "c": [0.992, 0.539, 1.0, 1.0, 0.979, 0.77, 0.966, 1.0, 0.999], "idx": 9732, "rep": 2956, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 1, 1, 0, 0, 1], "zong_FZ": [-1, 0, 0, -1, -1, 0, 0, 0, 0], "cuoo_zong_FCZ": [1, 0, 0, 1, 1, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, -1, -1, 0], "bian_FB": [0, 0, 1, 0, -1, 0, 0, 0, -1]}, "members": [2956, 9732, 9950, 16726], "neighbors": [{"i": 9732, "d": 0.0, "v": "0000--00-"}, {"i": 3171, "d": 1.0, "v": "-000--00-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}, {"i": 9003, "d": 1.0, "v": "00-0--00-"}, {"i": 9489, "d": 1.0, "v": "000---00-"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}, {"type": "boundary", "strength": 0.6, "note": "第 [2] 维判断置信度偏低，边界模糊"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}, {"type": "deliberation", "strength": 0.6, "text": "当前判断在多个邻近卦位/维度间摇摆（置信度不足或边界接近）。注入「深思动力」：不要急于定论，先对每个候选做更审慎的权衡，量化不确定性后再决策。"}]}}, {"text": "公司连续亏损不知是否继续", "v": [0, -1, 0, 0, -1, 0, 0, 0, -1], "c": [0.966, 0.999, 1.0, 0.994, 1.0, 0.998, 0.992, 0.993, 1.0], "idx": 7572, "rep": 3196, "mode": "habit", "freq": 12, "rec": "习惯模式：推荐复用「strategic_rethink」（历史 7 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 0, 0, 1], "zong_FZ": [-1, 0, 0, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 0, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, 0], "bian_FB": [0, -1, 0, 0, 0, 0, 0, 0, -1]}, "members": [3196, 7572, 12110, 16486], "neighbors": [{"i": 7572, "d": 0.0, "v": "0-00-000-"}, {"i": 1011, "d": 1.0, "v": "--00-000-"}, {"i": 6843, "d": 1.0, "v": "0--0-000-"}, {"i": 7329, "d": 1.0, "v": "0-0--000-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}], "drive": {"tensions": [], "signals": []}}, {"text": "业务进入爆发式增长期", "v": [1, 1, 1, 1, 1, 0, 1, 1, 0], "c": [1.0, 0.982, 1.0, 1.0, 1.0, 0.894, 1.0, 1.0, 1.0], "idx": 19654, "rep": 28, "mode": "habit", "freq": 11, "rec": "习惯模式：推荐复用「scale_up」（历史 5 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 0, 1, 1, 1, 0, 1, 1, 0]}, "members": [28, 6804, 12878, 19654], "neighbors": [{"i": 19654, "d": 0.0, "v": "+++++0++0"}, {"i": 13093, "d": 1.0, "v": "0++++0++0"}, {"i": 17467, "d": 1.0, "v": "+0+++0++0"}, {"i": 18925, "d": 1.0, "v": "++0++0++0"}, {"i": 19411, "d": 1.0, "v": "+++0+0++0"}], "drive": {"tensions": [], "signals": []}}, {"text": "按时上线了核心模块", "v": [1, 1, 1, 1, 1, 0, 1, 1, 1], "c": [1.0, 1.0, 1.0, 1.0, 1.0, 0.999, 1.0, 0.993, 0.999], "idx": 19655, "rep": 27, "mode": "explore", "freq": 2, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 1, 1, 1, 1, 0, 1, 1, 0]}, "members": [27, 243, 19439, 19655], "neighbors": [{"i": 19655, "d": 0.0, "v": "+++++0+++"}, {"i": 13094, "d": 1.0, "v": "0++++0+++"}, {"i": 17468, "d": 1.0, "v": "+0+++0+++"}, {"i": 18926, "d": 1.0, "v": "++0++0+++"}, {"i": 19412, "d": 1.0, "v": "+++0+0+++"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.6, "note": "等价类经验不足（命中 2 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.6, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}}, {"text": "静心打坐安顿身心", "v": [0, 0, 0, 0, 0, 0, 1, 1, 0], "c": [0.995, 0.873, 0.782, 0.984, 0.971, 1.0, 0.78, 0.96, 0.976], "idx": 9853, "rep": 6925, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 0, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 0, 0, 0, 0, 0], "cuoo_zong_FCZ": [0, -1, -1, 0, 0, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, 0, 0, 1], "bian_FB": [0, 0, 0, 0, 0, 0, 0, 1, 0]}, "members": [6925, 9829, 9853, 12757], "neighbors": [{"i": 9853, "d": 0.0, "v": "000000++0"}, {"i": 3292, "d": 1.0, "v": "-00000++0"}, {"i": 7666, "d": 1.0, "v": "0-0000++0"}, {"i": 9124, "d": 1.0, "v": "00-000++0"}, {"i": 9610, "d": 1.0, "v": "000-00++0"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}}, {"text": "深入研究一个新领域", "v": [1, 1, 0, 1, 0, 0, 1, 1, 1], "c": [0.999, 0.997, 0.998, 0.993, 0.96, 0.837, 0.996, 0.977, 0.781], "idx": 18845, "rep": 333, "mode": "habit", "freq": 4, "rec": "习惯模式：推荐复用「llm_reasoning」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, 0, -1, 0, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 0, 1, 0, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, 0, -1, 0, -1, -1], "hu_FH_5dim": [0, 1, 0, 0, 1], "bian_FB": [1, 1, 0, 0, 0, 0, 1, 1, 1]}, "members": [333, 837, 18845, 19349], "neighbors": [{"i": 18845, "d": 0.0, "v": "++0+00+++"}, {"i": 12284, "d": 1.0, "v": "0+0+00+++"}, {"i": 16658, "d": 1.0, "v": "+00+00+++"}, {"i": 18116, "d": 1.0, "v": "++-+00+++"}, {"i": 18602, "d": 1.0, "v": "++0000+++"}], "drive": {"tensions": [], "signals": []}}];
+const DATA = [{"text": "用户投诉产品有严重问题", "v": [0, -1, 0, 0, -1, 0, -1, 0, -1], "c": [0.99, 0.998, 0.994, 1.0, 1.0, 0.997, 0.999, 0.999, 1.0], "idx": 7563, "rep": 2467, "mode": "habit", "freq": 9, "rec": "习惯模式：推荐复用「crisis_response」（历史 4 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 1, 0, 1], "zong_FZ": [-1, 0, -1, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 1, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, -1], "bian_FB": [0, -1, 0, 0, 0, 0, -1, 0, -1]}, "members": [2467, 7563, 12119, 17215], "neighbors": [{"i": 7563, "d": 0.0, "v": "0-00-0-0-"}, {"i": 1002, "d": 1.0, "v": "--00-0-0-"}, {"i": 6834, "d": 1.0, "v": "0--0-0-0-"}, {"i": 7320, "d": 1.0, "v": "0-0--0-0-"}, {"i": 7536, "d": 1.0, "v": "0-00---0-"}], "drive": {"tensions": [], "signals": []}, "distill": "0000-000-", "distill_rate": 0.78}, {"text": "从零打造一个全新产品", "v": [1, 1, 1, 1, 0, 0, 0, 0, 0], "c": [0.987, 0.985, 0.946, 1.0, 1.0, 1.0, 0.878, 0.983, 0.995], "idx": 19561, "rep": 121, "mode": "habit", "freq": 3, "rec": "习惯模式：推荐复用「creative_build」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, 0, 0, 0, 0, 0], "zong_FZ": [0, 0, 0, 0, 0, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, 0, 0, 0, 0, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 0, 0, 0], "bian_FB": [0, 1, 1, 1, 0, 0, 0, 0, 0]}, "members": [121, 9801, 9881, 19561], "neighbors": [{"i": 19561, "d": 0.0, "v": "++++00000"}, {"i": 13000, "d": 1.0, "v": "0+++00000"}, {"i": 17374, "d": 1.0, "v": "+0++00000"}, {"i": 18832, "d": 1.0, "v": "++0+00000"}, {"i": 19318, "d": 1.0, "v": "+++000000"}], "drive": {"tensions": [], "signals": []}, "distill": "++0++0++0", "distill_rate": 0.56}, {"text": "团队内部互相推诿没人干活", "v": [0, 0, 0, 0, -1, -1, 0, 0, -1], "c": [0.992, 0.539, 1.0, 1.0, 0.979, 0.77, 0.966, 1.0, 0.999], "idx": 9732, "rep": 2956, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 1, 1, 0, 0, 1], "zong_FZ": [-1, 0, 0, -1, -1, 0, 0, 0, 0], "cuoo_zong_FCZ": [1, 0, 0, 1, 1, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, -1, -1, 0], "bian_FB": [0, 0, 1, 0, -1, 0, 0, 0, -1]}, "members": [2956, 9732, 9950, 16726], "neighbors": [{"i": 9732, "d": 0.0, "v": "0000--00-"}, {"i": 3171, "d": 1.0, "v": "-000--00-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}, {"i": 9003, "d": 1.0, "v": "00-0--00-"}, {"i": 9489, "d": 1.0, "v": "000---00-"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}, {"type": "boundary", "strength": 0.6, "note": "第 [2] 维判断置信度偏低，边界模糊"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}, {"type": "deliberation", "strength": 0.6, "text": "当前判断在多个邻近卦位/维度间摇摆（置信度不足或边界接近）。注入「深思动力」：不要急于定论，先对每个候选做更审慎的权衡，量化不确定性后再决策。"}]}, "distill": "00-000---", "distill_rate": 0.44}, {"text": "公司连续亏损不知是否继续", "v": [0, -1, 0, 0, -1, 0, 0, 0, -1], "c": [0.966, 0.999, 1.0, 0.994, 1.0, 0.998, 0.992, 0.993, 1.0], "idx": 7572, "rep": 3196, "mode": "habit", "freq": 12, "rec": "习惯模式：推荐复用「strategic_rethink」（历史 7 次，成功率 100%）。", "tr": {"cuoo_FC": [0, 1, 0, 0, 1, 0, 0, 0, 1], "zong_FZ": [-1, 0, 0, 0, -1, 0, 0, -1, 0], "cuoo_zong_FCZ": [1, 0, 0, 0, 1, 0, 0, 1, 0], "hu_FH_5dim": [0, 0, -1, 0, 0], "bian_FB": [0, -1, 0, 0, 0, 0, 0, 0, -1]}, "members": [3196, 7572, 12110, 16486], "neighbors": [{"i": 7572, "d": 0.0, "v": "0-00-000-"}, {"i": 1011, "d": 1.0, "v": "--00-000-"}, {"i": 6843, "d": 1.0, "v": "0--0-000-"}, {"i": 7329, "d": 1.0, "v": "0-0--000-"}, {"i": 7545, "d": 1.0, "v": "0-00--00-"}], "drive": {"tensions": [], "signals": []}, "distill": "0000-000-", "distill_rate": 0.89}, {"text": "业务进入爆发式增长期", "v": [1, 1, 1, 1, 1, 0, 1, 1, 0], "c": [1.0, 0.982, 1.0, 1.0, 1.0, 0.894, 1.0, 1.0, 1.0], "idx": 19654, "rep": 28, "mode": "habit", "freq": 11, "rec": "习惯模式：推荐复用「scale_up」（历史 5 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [0, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 0, 1, 1, 1, 0, 1, 1, 0]}, "members": [28, 6804, 12878, 19654], "neighbors": [{"i": 19654, "d": 0.0, "v": "+++++0++0"}, {"i": 13093, "d": 1.0, "v": "0++++0++0"}, {"i": 17467, "d": 1.0, "v": "+0+++0++0"}, {"i": 18925, "d": 1.0, "v": "++0++0++0"}, {"i": 19411, "d": 1.0, "v": "+++0+0++0"}], "drive": {"tensions": [], "signals": []}, "distill": "+++++++++", "distill_rate": 0.78}, {"text": "按时上线了核心模块", "v": [1, 1, 1, 1, 1, 0, 1, 1, 1], "c": [1.0, 1.0, 1.0, 1.0, 1.0, 0.999, 1.0, 0.993, 0.999], "idx": 19655, "rep": 27, "mode": "explore", "freq": 2, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [-1, -1, -1, -1, -1, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 1, 1, 1, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, -1, -1, -1, -1, -1], "hu_FH_5dim": [1, 1, 1, 0, 1], "bian_FB": [1, 1, 1, 1, 1, 0, 1, 1, 0]}, "members": [27, 243, 19439, 19655], "neighbors": [{"i": 19655, "d": 0.0, "v": "+++++0+++"}, {"i": 13094, "d": 1.0, "v": "0++++0+++"}, {"i": 17468, "d": 1.0, "v": "+0+++0+++"}, {"i": 18926, "d": 1.0, "v": "++0++0+++"}, {"i": 19412, "d": 1.0, "v": "+++0+0+++"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.6, "note": "等价类经验不足（命中 2 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.6, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}, "distill": "++0++0++0", "distill_rate": 0.78}, {"text": "静心打坐安顿身心", "v": [0, 0, 0, 0, 0, 0, 1, 1, 0], "c": [0.995, 0.873, 0.782, 0.984, 0.971, 1.0, 0.78, 0.96, 0.976], "idx": 9853, "rep": 6925, "mode": "explore", "freq": 0, "rec": "等价类命中不足，进入探索模式：建议主动尝试多种行为并记录结果。", "tr": {"cuoo_FC": [0, 0, 0, 0, 0, 0, -1, -1, 0], "zong_FZ": [0, 1, 1, 0, 0, 0, 0, 0, 0], "cuoo_zong_FCZ": [0, -1, -1, 0, 0, 0, 0, 0, 0], "hu_FH_5dim": [0, 0, 0, 0, 1], "bian_FB": [0, 0, 0, 0, 0, 0, 0, 1, 0]}, "members": [6925, 9829, 9853, 12757], "neighbors": [{"i": 9853, "d": 0.0, "v": "000000++0"}, {"i": 3292, "d": 1.0, "v": "-00000++0"}, {"i": 7666, "d": 1.0, "v": "0-0000++0"}, {"i": 9124, "d": 1.0, "v": "00-000++0"}, {"i": 9610, "d": 1.0, "v": "000-00++0"}], "drive": {"tensions": [{"type": "novelty", "strength": 0.9, "note": "等价类经验不足（命中 0 次），这是新领域"}], "signals": [{"type": "curiosity", "strength": 0.9, "text": "当前认知状态处于新领域（等价类经验不足）。注入「探索动力」：不要套用旧经验，主动尝试多种新行为并记录结果，未知本身就是机会。"}]}, "distill": "+0000-00-", "distill_rate": 0.44}, {"text": "深入研究一个新领域", "v": [1, 1, 0, 1, 0, 0, 1, 1, 1], "c": [0.999, 0.997, 0.998, 0.993, 0.96, 0.837, 0.996, 0.977, 0.781], "idx": 18845, "rep": 333, "mode": "habit", "freq": 4, "rec": "习惯模式：推荐复用「llm_reasoning」（历史 3 次，成功率 100%）。", "tr": {"cuoo_FC": [-1, -1, 0, -1, 0, 0, -1, -1, -1], "zong_FZ": [1, 1, 1, 0, 0, 1, 0, 1, 1], "cuoo_zong_FCZ": [-1, -1, -1, 0, 0, -1, 0, -1, -1], "hu_FH_5dim": [0, 1, 0, 0, 1], "bian_FB": [1, 1, 0, 0, 0, 0, 1, 1, 1]}, "members": [333, 837, 18845, 19349], "neighbors": [{"i": 18845, "d": 0.0, "v": "++0+00+++"}, {"i": 12284, "d": 1.0, "v": "0+0+00+++"}, {"i": 16658, "d": 1.0, "v": "+00+00+++"}, {"i": 18116, "d": 1.0, "v": "++-+00+++"}, {"i": 18602, "d": 1.0, "v": "++0000+++"}], "drive": {"tensions": [], "signals": []}, "distill": "+++0++0++", "distill_rate": 0.44}];
 
 const TOPO = {"active": 58, "records": 142, "merges": [{"a": 1, "b": 28, "similarity": 0.934, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 333, "b": 838, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 333, "b": 3025, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 838, "b": 3025, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 2953, "b": 3439, "similarity": 0.802, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}, {"a": 3199, "b": 7651, "similarity": 1.0, "actions_a": null, "actions_b": null, "succ_a": 1.0, "succ_b": 1.0, "note": "行为分布高度相似且效果一致，行为层等价"}], "splits": [{"class_rep": 3439, "entropy": 1.459, "main_action": "team_repair", "main_share": 0.5, "n_actions": 3, "records": 6, "note": "类内行为分歧大，可能包含多个子认知簇，建议拆分"}]};
 
@@ -305,6 +338,18 @@ function render(){
     cell.innerHTML = `<span class="yid">g${i+1}</span><span class="sym">${SYM[v]}</span><span class="name">${SEM[i]}</span>`;
     g.appendChild(cell);
   });
+
+  // 内化 vs 外挂 判定对比
+  const cs = $("cmpStrip");
+  if (d.distill) {
+    const encCode = d.v.map(segStr).join("");
+    cs.innerHTML =
+      `<div class="cmp-row"><span class="cmp-tag enc">外挂 encode</span><span class="cmp-code">${encCode.split("").join(" ")}</span></div>` +
+      `<div class="cmp-row"><span class="cmp-tag dis">内化解码</span><span class="cmp-code">${d.distill.split("").join(" ")}</span><span class="cmp-rate">逐维一致 ${(d.distill_rate*100).toFixed(0)}%</span></div>` +
+      `<div class="cmp-legend">外挂 = 本地 encode 模型判定 · 内化 = 中文 GPT2 蒸馏解码器并行输出</div>`;
+  } else {
+    cs.innerHTML = `<div class="cmp-legend">外挂 encode 判定（内化解码器数据未预计算）</div>`;
+  }
 
   // 置信度
   $("conf").innerHTML = d.c.map((cv,i)=>
@@ -396,9 +441,30 @@ function renderTopo(){
   p.innerHTML = html;
 }
 
+// 六模块认知引擎全景
+function renderMods(){
+  const MODS = [
+    ["01 相空间", "19683态·5002等价类·五算子", "done"],
+    ["02 投影器", "encode模型·文本→九维", "done"],
+    ["03 轨迹库", "态·行为·结果·时间戳", "done"],
+    ["04 动力引擎", "张力→动力信号注入", "done"],
+    ["05 等价学习", "行为层动态等价拓扑", "done"],
+    ["06 内化解码", "GPT2蒸馏·模型自带九维", "done"],
+  ];
+  $("modsPanel").innerHTML =
+    `<div class="mod-strip">${MODS.map(([n,d,st])=>
+      `<div class="mod ${st}"><span class="m-ic">${n}</span><div class="m-n">${d.split("·")[0]}</div><div class="m-d">${d.split("·").slice(1).join("·")}</div></div>`
+    ).join("")}</div>` +
+    `<div style="font-size:11.5px;color:var(--muted);letter-spacing:.04em;margin-top:10px;line-height:1.7">
+      闭环：任务 → 九维定位 → 轨迹落库 → 习惯偏置 → 张力检测 → 动力注入 → 行为层等价 → 内化解码。<br>
+      外挂 encode 与内化解码器双路线可切换对照（上方九宫格下方逐维对比）。
+    </div>`;
+}
+
 renderTasks();
 render();
 renderTopo();
+renderMods();
 </script>
 </body>
 </html>
