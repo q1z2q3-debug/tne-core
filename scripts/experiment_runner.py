@@ -107,6 +107,44 @@ def snapshot(close, pool, i):
     return out
 
 
+def panel_fe(df, dep, indep):
+    """双重固定效应(股票+日期) OLS + 按股票聚类的稳健SE。
+    返回 [(name, coef, se, t, p)]。无外部依赖(numpy实现)。"""
+    d = df.dropna(subset=[dep] + indep)
+    Y = d[dep].values.astype(float)
+    X = np.column_stack([d[k].values.astype(float) for k in indep])
+    N, K = X.shape
+    # within变换: 按code去均值 + 按date去均值
+    code_mean_y = d.groupby("code")[dep].transform("mean").values
+    date_mean_y = d.groupby("date")[dep].transform("mean").values
+    gm_y = Y.mean()
+    Yt = Y - code_mean_y - date_mean_y + gm_y
+    Xt = np.empty_like(X)
+    for j in range(K):
+        cj = d.groupby("code")[indep[j]].transform("mean").values
+        dj = d.groupby("date")[indep[j]].transform("mean").values
+        Xt[:, j] = X[:, j] - cj - dj + X[:, j].mean()
+    Xt1 = np.column_stack([np.ones(N), Xt])          # 加常数(吸收grand mean)
+    beta = np.linalg.lstsq(Xt1, Yt, rcond=None)[0]
+    e = Yt - Xt1 @ beta
+    # 聚类稳健SE (按code)
+    XpX = Xt1.T @ Xt1
+    meat = np.zeros_like(XpX)
+    for key, grp in d.groupby("code"):
+        mask = (d["code"] == key).to_numpy()
+        Xi = Xt1[mask]
+        ei = e[mask]
+        s = Xi * ei[:, None]
+        meat += (s.T @ s)
+    cov = np.linalg.inv(XpX) @ meat @ np.linalg.inv(XpX)
+    se = np.sqrt(np.diag(cov))
+    dof = N - K - 1
+    tstat = beta / se
+    p = 2 * stats.t.sf(np.abs(tstat), dof)
+    return [(f"const", beta[0], se[0], tstat[0], p[0])] + \
+           [(indep[j], beta[j + 1], se[j + 1], tstat[j + 1], p[j + 1]) for j in range(K)]
+
+
 def run(pool):
     print(f"拉取日K({len(pool)}只) ...")
     close = build_panel(pool)
@@ -171,6 +209,28 @@ def run(pool):
     arr = np.array(icc)
     print(f"\n[检验C] 三趋势分tscore3 vs ret20: IC_mean={arr.mean():+.4f} "
           f"IR={arr.mean()/(arr.std()+1e-9):+.2f} ({len(arr)}截面)")
+
+    # ---- 检验D: 双重固定效应面板回归(股票+日期) + 聚类稳健SE ----
+    print("\n[检验D] 双重固定效应面板回归 ret60 ~ tscore3(+g2对照)")
+    reg = panel_fe(df, dep="ret60", indep=["tscore3", "g2"])
+    for name, b, se, t, p in reg:
+        sig = "显著" if p < 0.05 else "不显著"
+        print(f"  {name:10s} coef={b:+.4f}  SE={se:.4f}  t={t:+.2f}  p={p:.4f}  {sig}")
+
+    # ---- 检验D'基线: 打乱tscore3重算FE系数 ----
+    real_coef = [r[1] for r in reg if r[0] == "tscore3"][0]
+    rng2 = np.random.default_rng(7)
+    fe_coefs = []
+    for _ in range(200):
+        dd = df.copy()
+        dd["tscore3"] = rng2.permutation(dd["tscore3"].values)
+        regr = panel_fe(dd, dep="ret60", indep=["tscore3", "g2"])
+        fe_coefs.append([r[1] for r in regr if r[0] == "tscore3"][0])
+    farr = np.array(fe_coefs)
+    pct2 = (farr < real_coef).mean()
+    print(f"\n[检验D'基线] 200次打乱tscore3的FE系数分布: 均值{farr.mean():+.4f} std{farr.std():.4f} "
+          f"| 真实系数({real_coef:+.4f})位于随机之下 {pct2*100:.1f}% 分位 "
+          f"{'显著非偶然' if pct2>0.95 or pct2<0.05 else '无信号'}")
 
     # ---- 随机基线: 打乱态重算IC ----
     rng = np.random.default_rng(42)
