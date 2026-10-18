@@ -6,3 +6,5 @@ dist/
 build/
 .venv/
 demo/_shots/
+tmp/
+tmp/distill_tiny*
