@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>周期传导轨迹看板 · 三元九维金融</title>
+<style>
+:root{--bg:#0b0c10;--s2:#11131a;--line:#2a2e3a;--gold:#d4af6e;--muted:#8a93a6;--ink:#e8e6e1}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font-family:'Noto Serif SC',serif;padding:28px 20px}
+h1{font-size:26px;letter-spacing:2px;color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:12px}
+.sub{color:var(--muted);font-size:13px;margin:10px 0 22px;line-height:1.6}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+.stk-card{background:var(--s2);border:1px solid var(--line);border-radius:8px;padding:16px}
+.stk-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.nm{font-size:20px;color:var(--gold);font-weight:700}.code{color:var(--muted);font-size:12px;margin-left:6px}
+.ind{color:var(--muted);font-size:12px;background:#1a1e28;padding:2px 8px;border-radius:4px;margin-left:8px}
+.close{color:var(--ink);font-size:14px}
+.chain{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.node{flex:1;min-width:90px;border:1px solid;border-radius:6px;padding:12px 8px;text-align:center;background:#0f1120}
+.lbl{font-size:12px;color:var(--muted)}.state{font-size:22px;font-weight:700;margin:6px 0;color:#0b0c10}
+.val{font-size:12px;color:var(--ink)}.tag{font-size:10px;color:var(--gold);margin-top:4px}
+.arrow{color:var(--gold);font-size:20px;align-self:center}.arrow.down{color:#6b7a99}
+.diag{margin-top:16px;padding:10px 12px;background:#161a26;border-left:3px solid var(--gold);border-radius:4px;font-size:13px;line-height:1.6}
+.diag b{color:var(--gold)}.note{color:var(--muted);display:block;margin-top:4px;font-size:12px}
+.days{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.b{font-size:11px;padding:2px 6px;border-radius:3px;background:#1a1e28;color:var(--muted)}
+.b.up{color:#d4af6e}.b.down{color:#6b7a99}
+.legend{display:flex;gap:16px;margin:14px 0;color:var(--muted);font-size:12px}
+.lg{display:inline-flex;align-items:center;gap:5px}.dot{width:12px;height:12px;border-radius:2px;display:inline-block}
+.foot{color:var(--muted);font-size:11px;margin-top:22px;border-top:1px solid var(--line);padding-top:10px}
+</style></head><body>
+<h1>周期传导轨迹看板 · 时间认知链</h1>
+<div class="sub">K线时间维度 = 一条认知链：<b style="color:var(--gold)">分钟(情绪)→日(动能)→周(波段)→月(趋势)→年(根性)</b>。观察短期信号如何逐级传导为长期趋势；快慢方向背离 = 转折张力。规则：每周期涨跌 ≥+2% 判阳(生发) / ≤-2% 判阴(收敛) / 其余判衡(稳态)。数据为真实行情(2026-10-16收盘)。</div>
+<div class="legend">
+  <span class="lg"><span class="dot" style="background:var(--gold)"></span>阳·生发(向上)</span>
+  <span class="lg"><span class="dot" style="background:#c0a66a"></span>衡·稳态</span>
+  <span class="lg"><span class="dot" style="background:#6b7a99"></span>阴·收敛(向下)</span>
+</div>
+<div class="wrap">
+
+        <div class="stk-card">
+          <div class="stk-head">
+            <div><span class="nm">贵州茅台</span> <span class="code">600519.SH</span>
+            <span class="ind">白酒/高端消费</span></div>
+            <div class="close">¥1329.0 · PE 20.4</div>
+          </div>
+          <div class="chain"><div class="node" style="border-color:#d4af6e">
+              <div class="lbl">日·动能</div>
+              <div class="state" style="background:#d4af6e">阳</div>
+              <div class="val">+1.03%</div>
+              <div class='tag fast'>快</div>
+            </div><div class="arrow ">⇄</div><div class="node" style="border-color:#d4af6e">
+              <div class="lbl">周·波段</div>
+              <div class="state" style="background:#d4af6e">阳</div>
+              <div class="val">+4.90%</div>
+              
+            </div><div class="arrow "></div><div class="node" style="border-color:#d4af6e">
+              <div class="lbl">月·趋势</div>
+              <div class="state" style="background:#d4af6e">阳</div>
+              <div class="val">+5.59%</div>
+              
+            </div><div class="arrow down"></div><div class="node" style="border-color:#6b7a99">
+              <div class="lbl">年·根性</div>
+              <div class="state" style="background:#6b7a99">阴</div>
+              <div class="val">-3.50%</div>
+              
+            </div></div>
+          <div class="diag"><b>背离·转折张力</b><span class="note">快中慢全阳、年衡: 顺势突破,根性待验</span></div>
+        </div>
+
+        <div class="stk-card">
+          <div class="stk-head">
+            <div><span class="nm">宁德时代</span> <span class="code">300750.SZ</span>
+            <span class="ind">新能源/电池</span></div>
+            <div class="close">¥277.0 · PE 15.08</div>
+          </div>
+          <div class="chain"><div class="node" style="border-color:#6b7a99">
+              <div class="lbl">日·动能</div>
+              <div class="state" style="background:#6b7a99">阴</div>
+              <div class="val">-1.43%</div>
+              <div class='tag fast'>快</div>
+            </div><div class="arrow down">↘</div><div class="node" style="border-color:#6b7a99">
+              <div class="lbl">周·波段</div>
+              <div class="state" style="background:#6b7a99">阴</div>
+              <div class="val">-8.97%</div>
+              
+            </div><div class="arrow down"></div><div class="node" style="border-color:#6b7a99">
+              <div class="lbl">月·趋势</div>
+              <div class="state" style="background:#6b7a99">阴</div>
+              <div class="val">-3.40%</div>
+              
+            </div><div class="arrow down"></div><div class="node" style="border-color:#6b7a99">
+              <div class="lbl">年·根性</div>
+              <div class="state" style="background:#6b7a99">阴</div>
+              <div class="val">-24.58%</div>
+              
+            </div></div>
+          <div class="diag"><b>同向·趋势延续</b><span class="note">全周期共振向下: 弱势收敛,动能与势能同向</span></div>
+        </div>
+</div>
+<div class="foot">研究辅助，非投资建议 · 三元九维认知引擎 TNE-Core · 周期数据来自同花顺/Wind 2026-10-16</div>
+</body></html>
