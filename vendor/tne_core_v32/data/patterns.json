@@ -1,0 +1,119 @@
+{
+  "核心模块优化::要事第一>统合综效>不断更新": {
+    "task_type": "核心模块优化",
+    "execution_chain": [
+      "要事第一",
+      "统合综效",
+      "不断更新"
+    ],
+    "success_rate": 0.9214400000000003,
+    "usage_count": 4,
+    "last_used": 1792296678.6799912,
+    "source_tasks": [
+      "op_002",
+      "op_001",
+      "op_004",
+      "op_003"
+    ],
+    "trigger_conditions": {
+      "min_efficacy": 0.85,
+      "habit_chain_length": 3,
+      "typical_state_signature": "p2z7n0",
+      "_sig_sum_p": 7,
+      "_sig_sum_z": 29,
+      "_sig_sum_n": 0,
+      "_sig_count": 4,
+      "_sig_p": 1.75,
+      "_sig_z": 7.25,
+      "_sig_n": 0.0
+    }
+  },
+  "核心模块开发::以终为始>要事第一>统合综效": {
+    "task_type": "核心模块开发",
+    "execution_chain": [
+      "以终为始",
+      "要事第一",
+      "统合综效"
+    ],
+    "success_rate": 0.8972800000000002,
+    "usage_count": 4,
+    "last_used": 1792296678.6803994,
+    "source_tasks": [
+      "dv_003",
+      "dv_004",
+      "dv_001",
+      "dv_002"
+    ],
+    "trigger_conditions": {
+      "min_efficacy": 0.85,
+      "habit_chain_length": 3,
+      "typical_state_signature": "p2z7n0",
+      "_sig_sum_p": 7,
+      "_sig_sum_z": 29,
+      "_sig_sum_n": 0,
+      "_sig_count": 4,
+      "_sig_p": 1.75,
+      "_sig_z": 7.25,
+      "_sig_n": 0.0
+    }
+  },
+  "团队协作::知彼解己>统合综效": {
+    "task_type": "团队协作",
+    "execution_chain": [
+      "知彼解己",
+      "统合综效"
+    ],
+    "success_rate": 0.8712000000000002,
+    "usage_count": 3,
+    "last_used": 1792296678.6806219,
+    "source_tasks": [
+      "tm_002",
+      "tm_001",
+      "tm_003"
+    ],
+    "trigger_conditions": {
+      "min_efficacy": 0.85,
+      "habit_chain_length": 2,
+      "typical_state_signature": "p2z7n0",
+      "_sig_sum_p": 5,
+      "_sig_sum_z": 22,
+      "_sig_sum_n": 0,
+      "_sig_count": 3,
+      "_sig_p": 1.6666666666666667,
+      "_sig_z": 7.333333333333333,
+      "_sig_n": 0.0
+    }
+  },
+  "创作叙事::以终为始>统合综效>不断更新": {
+    "task_type": "创作叙事",
+    "execution_chain": [
+      "以终为始",
+      "统合综效",
+      "不断更新"
+    ],
+    "success_rate": 0.9165683200000003,
+    "usage_count": 7,
+    "last_used": 1792296678.6805458,
+    "source_tasks": [
+      "cr_007",
+      "cr_006",
+      "cr_001",
+      "cr_002",
+      "cr_003",
+      "cr_005",
+      "cr_004"
+    ],
+    "trigger_conditions": {
+      "min_efficacy": 0.85,
+      "habit_chain_length": 3,
+      "typical_state_signature": "p1z8n0",
+      "_sig_sum_p": 7,
+      "_sig_sum_z": 56,
+      "_sig_sum_n": 0,
+      "_sig_count": 7,
+      "_sig_p": 1.0,
+      "_sig_z": 8.0,
+      "_sig_n": 0.0
+    }
+  }
+}
