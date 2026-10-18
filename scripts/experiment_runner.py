@@ -247,6 +247,10 @@ def run_long(pool):
             raws[c] = {"g1": p0 / p[i - 4] - 1, "g5": p0 / p[i - 2] - 1,
                        "g9": p0 / p[i - 52] - 1,
                        "ret20": p[i + 4] / p0 - 1, "ret60": p[i + 12] / p0 - 1}
+            # 历史波动率(近52周收益std) — 对照因子: 判断趋势态是否为波动率代理
+            seg = p[i - 52:i + 1]
+            vret = seg[1:] / seg[:-1] - 1
+            raws[c]["vol"] = float(np.std(vret)) if len(vret) >= 20 else np.nan
         if len(raws) < 8:
             continue
         med = {k: float(np.median([r[k] for r in raws.values()])) for k in ("g1", "g5", "g9")}
@@ -255,7 +259,7 @@ def run_long(pool):
             g["g2"] = 0  # 周K无日内
             tscore3 = g["g1"] + g["g5"] + g["g9"]
             mode = "strong" if tscore3 >= 1 else ("weak" if tscore3 <= -1 else "neutral")
-            rows.append({**g, "mode": mode, "tscore3": tscore3,
+            rows.append({**g, "mode": mode, "tscore3": tscore3, "vol": v["vol"],
                          "ret20": v["ret20"], "ret60": v["ret60"],
                          "date": close.index[i].date(), "code": c})
     df = pd.DataFrame(rows)
@@ -312,7 +316,8 @@ def analyze(df, src, ann_period):
           f"IR={arr.mean()/(arr.std()+1e-9):+.2f} ({len(arr)}截面)")
 
     # ---- 检验D: 双重固定效应面板回归(股票+日期) + 聚类稳健SE ----
-    indep = ["tscore3"] + (["g2"] if df["g2"].nunique() > 1 else [])  # g2恒定(周K)时剔除
+    indep = ["tscore3"] + (["g2"] if df["g2"].nunique() > 1 else []) \
+        + (["vol"] if "vol" in df.columns else [])  # vol对照: 判断趋势态是否波动率代理
     print(f"\n[检验D] 双重固定效应面板回归 ret60 ~ {'+'.join(indep)} ({src})")
     reg = panel_fe(df, dep="ret60", indep=indep)
     for name, b, se, t, p in reg:
