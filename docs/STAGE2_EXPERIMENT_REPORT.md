@@ -142,3 +142,31 @@ python src/tne/projector/experiments/shared_layer.py      # 共享表示层
 > **轨迹 → 习惯 → 认知偏置的闭环在真实自训 encode 模型上成立（8/8）。**
 > 等价类把"同认知场景的不同表述"聚合为共享习惯，实现跨表述的习惯泛化。
 > 这是"习惯从物质中涌现"的可运行证据。
+
+---
+
+## 阶段三第一步：认知动力引擎（Drive）
+
+### 目标
+把"任务→定位→习惯"的被动认知循环，升级为"主动驱动"：
+任务定位 → 张力检测 → 动力信号 → 注入下一轮推理。
+
+### 实现
+- `src/tne/drive/tension.py`：TensionDetector（三类张力）+ SignalGenerator（三类动力）
+  - novelty 新奇：等价类经验不足 → curiosity 好奇（主动探索）
+  - boundary 边界：置信度低 / 邻域摇摆 → deliberation 深思（审慎权衡）
+  - habit_conflict 习惯冲突：历史成功率不足 → meta_reasoning 元认知（质疑旧行为）
+- `llm_agent.py` 集成：run() 内检测张力 → 生成动力 → 注入 answer；返回 drive 字段
+- `encoder_judger.py`：实例可调用（__call__），保留 judge_with_confidence 供 drive 用
+
+### 验证（端到端）
+| 任务 | 习惯态 | 张力 | 动力 |
+|---|---|---|---|
+| 落叶短诗 | habit(11) | 无 | 无（稳定复用 ✅）|
+| 量子计算难题 | explore(0) | novelty | curiosity |
+| 裁员危机 | explore(0) | novelty+boundary | curiosity+deliberation |
+
+### 意义
+> 认知循环从"被动定位"升级为"主动驱动"：新领域被注入探索动力，
+> 边界模糊被注入深思动力，习惯冲突被注入元认知动力。
+> 这是迈向"习惯产生张力、张力驱动认知"自运转闭环的实质一步。

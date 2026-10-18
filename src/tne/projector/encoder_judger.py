@@ -66,6 +66,10 @@ class TrainedEncoderJudger:
         self.cache[task] = vec
         return vec
 
+    def __call__(self, task: str) -> List[int]:
+        """使实例可调用（作为 vector_judger 传入 agent，保留 judge_with_confidence）。"""
+        return self.judge(task)
+
     def judge_with_confidence(self, task: str) -> dict:
         """返回向量 + 每维置信度（用于可审计）。"""
         enc = self.tok([task], padding=True, truncation=True,

@@ -26,18 +26,21 @@ class LLMAgent:
     def __init__(self, api: TNEApiClient,
                  vector_judger: Callable[[str], List[int]],
                  answer_generator: Optional[Callable[[str, dict], str]] = None,
-                 session_id: Optional[str] = None):
+                 session_id: Optional[str] = None,
+                 enable_drive: bool = True):
         """
         Args:
             api: TNE 坐标服务客户端
             vector_judger: 函数 (任务文本) -> 九维三态向量（由 LLM 判断）
             answer_generator: 函数 (任务文本, 认知上下文) -> 回答文本（可选）
             session_id: 会话 ID
+            enable_drive: 是否启用认知动力引擎（张力→动力→注入）
         """
         self.api = api
         self.vector_judger = vector_judger
         self.answer_generator = answer_generator
         self.session_id = session_id or str(uuid.uuid4())[:8]
+        self.enable_drive = enable_drive
 
     def run(self, task: str, enable_search: bool = True,
             enable_transform: bool = False) -> Dict[str, Any]:
@@ -70,6 +73,17 @@ class LLMAgent:
         if enable_transform:
             transform = self.api.transform(vector)
 
+        # 5b. 认知动力引擎：张力检测 → 动力信号 → 注入
+        drive = None
+        confidence = None
+        if self.enable_drive and hasattr(self.vector_judger, "judge_with_confidence"):
+            try:
+                confidence = self.vector_judger.judge_with_confidence(task)["confidence"]
+                from tne.drive.tension import detect_and_generate
+                drive = detect_and_generate(hab, confidence, neighbors)
+            except Exception as e:
+                drive = None
+
         # 6. 生成回答
         context = {
             "gua_idx": enc["gua_idx"],
@@ -77,11 +91,16 @@ class LLMAgent:
             "habit": hab,
             "neighbors": neighbors,
             "transform": transform,
+            "drive": drive,
         }
         if self.answer_generator:
             answer = self.answer_generator(task, context)
         else:
-            answer = f"[认知定位] 卦位#{enc['gua_idx']} (等价类#{enc['class_rep']}) | 习惯模式: {hab['mode']}"
+            drive_note = ""
+            if drive and drive["signals"]:
+                drive_note = f" | 动力: {'+'.join(s['type'] for s in drive['signals'])}"
+            answer = (f"[认知定位] 卦位#{enc['gua_idx']} (等价类#{enc['class_rep']})"
+                      f" | 习惯模式: {hab['mode']}{drive_note}")
 
         # 7. 评估结果（简单规则：习惯模式且复用=success，探索=partial）
         if hab["mode"] == "habit":
@@ -111,6 +130,7 @@ class LLMAgent:
             "habit_recommendation": hab.get("recommendation", ""),
             "neighbors": neighbors,
             "transform": transform,
+            "drive": drive,
             "answer": answer,
             "outcome": outcome,
             "reward": reward,
@@ -241,17 +261,26 @@ def make_encoder_agent(api: TNEApiClient, session_id: Optional[str] = None) -> L
     创建一个使用自训 encode 模型判断的 LLM Agent。
 
     替代关键词法（DoubaoJudger），用阶段二训练的 MiniLM+九维分类头，
-    对任意任务文本判断九维向量（每维准确率 ~79%）。
+    对任意任务文本判断九维向量（每维准确率 ~79%）。默认启用认知动力引擎。
     """
     from tne.projector.encoder_judger import TrainedEncoderJudger
     judger = TrainedEncoderJudger()
+
+    def gen_answer(task, ctx):
+        d = ctx.get("drive")
+        drive_txt = ""
+        if d and d["signals"]:
+            drive_txt = "\n" + d["prompt"]
+        rec = ctx["habit"].get("recommendation", "无")[:80]
+        return (f"[卦位#{ctx['gua_idx']}] 任务已认知定位。"
+                f"习惯模式: {ctx['habit']['mode']} (命中{ctx['habit'].get('freq',0)}次)。"
+                f"建议: {rec}"
+                + (f"\n[认知动力] {', '.join(s['type'] for s in d['signals'])}"
+                   + drive_txt if d and d["signals"] else ""))
+
     return LLMAgent(
         api=api,
-        vector_judger=judger.judge,
-        answer_generator=lambda task, ctx: (
-            f"[卦位#{ctx['gua_idx']}] 任务已认知定位。"
-            f"习惯模式: {ctx['habit']['mode']} (命中{ctx['habit'].get('freq',0)}次)。"
-            f"建议: {ctx['habit'].get('recommendation', '无')[:80]}"
-        ),
+        vector_judger=judger,   # 传实例（可调用 + 保留 judge_with_confidence）
+        answer_generator=gen_answer,
         session_id=session_id,
     )
