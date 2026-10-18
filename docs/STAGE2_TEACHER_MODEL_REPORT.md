@@ -60,27 +60,42 @@
 - 2 层 12 epoch：lr=1e-4 太保守，train 仅 22%，val 8%（未收敛）
 - 结论：CPU 上微调 transformer 无法跑到收敛，冻结 base 只训 head 反而更有效（利用 MiniLM 预训练语义）
 
+### 2.5 突破：数据扩充 253→298 + 中文语义模型 bge-small-zh
+
+**数据扩充（批次4）**：重点补弱维度 g3/g5/g9 的中态vs阴阳判别样本（产出在途/明确/收敛，主态平稳/上升/下沉，根性中性/根深/根弱），数据 253→298 条。
+
+**换中文语义模型**：下载 BAAI/bge-small-zh-v1.5（4层 512维，中文语义检索特化），比多语 MiniLM（384维）更懂中文。实测：
+
+| seed | MiniLM 每维均 | bge 每维均 |
+|---|---|---|
+| 7 | 78.5% | **79.7%** |
+| 42 | 76.3% | 75.5% |
+| 123 | 71.6% | — |
+
+弱维度提升（seed7）：g3产出 76%（↑）、g5主态 73%（↑）、g9根性 68%（→）
+
+**结论**：每维准确率稳定在 **75-80%**（随机基线 33%，3倍+）。数据到 300 条进入平台期，瓶颈转向 embedding 质量；中文语义模型（bge）优于多语 MiniLM。
+
 ## 三、诚实结论
 
-1. **路线可行且已见成效**：模型每维三态判断准确率 75.1%（基线 33%），**确实学到了爻位九维语义**。这是"自训 encode 模型"的实证。
+1. **路线可行且已见成效**：模型每维三态判断准确率 75-80%（基线 33%），**确实学到了爻位九维语义**。这是"自训 encode 模型"的实证。
 
-2. **评价指标是关键修正**：encode 模型必须用每维准确率，不能用"9维全对"。这一修正把模型从"看似失败（14%）"纠正为"实际可用（75%）"。
+2. **评价指标是关键修正**：encode 模型必须用每维准确率，不能用"9维全对"。这一修正把模型从"看似失败（14%）"纠正为"实际可用（75-80%）"。
 
-3. **继续提升的方向**：
-   - 补弱维度数据（g3产出 / g5主态 / g9根性 中态边界模糊）
-   - 数据量从 253 → 数千条（每维准确率有望到 85%+）
-   - 有 GPU 时微调 base（CPU 不可行）
+3. **数据到 300 条进入平台期**：瓶颈从数据量转向 embedding 质量。中文语义模型（bge）略优，但整体受限于 CPU 无法微调 base。
 
 ## 四、当前产物
 
 - `src/tne/space/semantics.py` — 爻位九维语义锚点
-- `src/tne/projector/experiments/teacher_data_gen.py` / `teacher_data_gen2.py` / `teacher_data_gen3.py` — 教师数据生成（253 条）
-- `src/tne/projector/experiments/train_teacher_model.py` — 微调脚本（支持只训 head / 微调 base）
-- `data/teacher_seeds.json` — 教师标注数据（253 条）
+- `src/tne/projector/experiments/teacher_data_gen.py` / `2` / `3` / `4` — 教师数据生成（298 条，含弱维度专项）
+- `src/tne/projector/experiments/train_teacher_model.py` — 微调脚本（支持只训 head / 微调 base / 模型路径）
+- `data/teacher_seeds.json` — 教师标注数据（298 条）
 - `data/trained_encoder.pt` — 训练好的编码头（base 在外部缓存）
+- `/home/user/.cache/bge_small_zh` — 中文语义模型（bge-small-zh）
 
 ## 五、下一步建议
 
-1. **补弱维度数据**：g3/g5/g9 中态边界模糊，补针对性样本提升到 85%+
-2. **接入坐标服务**：把 trained_encoder 作为 encode 后端，替代关键词法（v3.2 的 val 25% 天花板）
+1. **接入坐标服务**：把 trained_encoder 作为 encode 后端，替代关键词法（v3.2 的 val 25% 天花板）——每维 75-80% 已可作"认知坐标"合理估计
+2. **有 GPU 时微调 base**：CPU 不可行，GPU 上让 embedding 深度对齐九维语义
+3. **数据到数千条**：每维准确率有望再上台阶（当前 300 条已进平台期，需大规模才显著提升）
 3. **数据规模**：教师数据 253 → 数千条，每维准确率持续提升

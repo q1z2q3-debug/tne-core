@@ -26,6 +26,7 @@ from transformers import AutoTokenizer, AutoModel
 TNE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 DATA_PATH = os.path.join(TNE_ROOT, "data", "teacher_seeds.json")
 MODEL_PATH = "/home/user/.cache/minilm_local"
+BGE_PATH = "/home/user/.cache/bge_small_zh"
 OUT_PATH = os.path.join(TNE_ROOT, "data", "trained_encoder.pt")
 
 IDX = {-1: 0, 0: 1, 1: 2}
@@ -90,9 +91,10 @@ def train(args):
     train_d, val_d = [data[i] for i in train_idx], [data[i] for i in val_idx]
     print(f"训练 {len(train_d)} | 验证 {len(val_d)}")
 
-    print("[加载 MiniLM ...]")
-    tok = AutoTokenizer.from_pretrained(MODEL_PATH, local_files_only=True)
-    base = AutoModel.from_pretrained(MODEL_PATH, local_files_only=True)
+    model_path = args.model_path
+    print(f"[加载模型 {os.path.basename(model_path)} ...]")
+    tok = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+    base = AutoModel.from_pretrained(model_path, local_files_only=True)
     model = Encoder(base)
     opt = make_opt(base, model, args.finetune_layers, args.lr)
     loss_fn = nn.CrossEntropyLoss()
@@ -208,6 +210,8 @@ def main():
     ap.add_argument("--finetune_layers", type=int, default=0,
                     help="微调 base 最后 N 层（0=只训 head）")
     ap.add_argument("--batch", type=int, default=16)
+    ap.add_argument("--model_path", type=str, default=MODEL_PATH,
+                    help="embedding 模型路径（默认 MiniLM，可选 bge）")
     args = ap.parse_args()
     train(args)
 
