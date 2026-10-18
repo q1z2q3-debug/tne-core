@@ -4,80 +4,9 @@
 """
 import json, glob, sys, os
 sys.path.insert(0, "src")
-sys.path.insert(0, "scripts")
 
-from tne.space.space import encode
-from tne.space.equivalence import class_of
-import finance_mapper as fm
-
-S = {-1: "阴", 0: "衡", 1: "阳"}
-SCODE = {-1: "-", 0: "0", 1: "+"}
-MODE_SCORE = {"强势·生发": 3, "稳健·蓄势": 2, "震荡·待变": 1, "弱势·收敛": 0}
-CYC_MODE_SCORE = {"顺势·生发": 3, "回踩·背离": 3, "反弹·背离": 3, "震荡·待变": 1, "弱势·收敛": 0}
-
-
-def cycle_analyze(d):
-    q, t = d["quote"], d["trend"]
-    def tri(v, thr):
-        return 1 if v >= thr else (-1 if v <= -thr else 0)
-    st = [tri(q["chg_pct"], 1.0), tri(t["two_week_pct"], 2.0),
-          tri(t["month_pct"], 2.0), tri(t["year_pct"], 2.0)]
-    day, week, month, year = st
-    revs = sum(1 for i in range(3) if st[i] != 0 and st[i + 1] != 0 and st[i] != st[i + 1])
-    conflict = day != year
-    tension = revs * 2 + (3 if conflict else 0) + abs(year)
-    if year == 1 and month == 1:
-        mode, cls = "顺势·生发", "strong"
-    elif year == -1 and (day == 1 or week == 1):
-        mode, cls = "反弹·背离", "rebound"
-    elif year == -1 and month == -1:
-        mode, cls = "弱势·收敛", "weak"
-    elif year == 1 and (day == -1 or week == -1):
-        mode, cls = "回踩·背离", "pullback"
-    else:
-        mode, cls = "震荡·待变", "mixed"
-    return {"chain": "".join(SCODE[x] for x in st), "mode": mode, "cls": cls,
-            "tension": tension, "conflict": conflict}
-
-
-def watch_score(mode, cyc_mode, tensions, signals, conflict):
-    s = MODE_SCORE[mode] + CYC_MODE_SCORE[cyc_mode]
-    sig = {x["type"] for x in signals}
-    ten = {x["type"] for x in tensions}
-    if {"curiosity", "novelty"} & sig:
-        s += 1.0
-    if "habit_conflict" in ten:
-        s += 0.5
-    if "boundary" in ten:
-        s -= 0.5  # 估值/风险偏高, 谨慎
-    # 快慢背离=转折验证, 天然高关注
-    if conflict:
-        s += 0.5
-    if s >= 5.5:
-        lv, lc = "高关注·转折验证", "high"
-    elif s >= 3.5:
-        lv, lc = "中关注·趋势跟踪", "mid"
-    else:
-        lv, lc = "低关注·风险规避", "low"
-    return s, lv, lc
-
-
-def main():
-    rows = []
-    for f in sorted(glob.glob("data/finance/*.json")):
-        d = json.load(open(f, encoding="utf-8"))
-        g = fm.map_nine(d)
-        r = fm.diagnose(g, d)
-        cyc = cycle_analyze(d)
-        s, lv, lc = watch_score(r["mode"], cyc["mode"], r["tensions"], r["signals"], cyc["conflict"])
-        rows.append({"d": d, "gua": r["code_str"], "gua_idx": r["gua_idx"],
-                     "space_mode": r["mode"], "cyc": cyc, "score": round(s, 1), "lv": lv, "lc": lc,
-                     "sigs": "|".join(x["type"] for x in r["signals"]), "tens": "|".join(x["type"] for x in r["tensions"])})
-    rows.sort(key=lambda x: -x["score"])
-    build_html(rows)
-    for r in rows:
-        d = r["d"]
-        print(f"  {d['name']:<6}{r['gua']} 空间{r['space_mode']} 周期{r['cyc']['chain']}{r['cyc']['mode']} 张力{r['cyc']['tension']} → 关注{r['score']} {r['lv']}")
+from tne.finance.cognition import (map_nine, diagnose, cycle_analyze, watch_analyze,
+                                   DISCLAIMER, SCODE)
 
 
 def build_html(rows):
@@ -90,7 +19,7 @@ def build_html(rows):
       <span class="i">{d['industry']}</span></div>
   <div class="gua">{r['gua']}<span class="gi">#{r['gua_idx']}</span></div>
   <div class="sp">{r['space_mode']}</div>
-  <div class="cyc"><span class="ch">{r['cyc']['chain']}</span>{r['cyc']['mode']}{conflict_tag}</div>
+  <div class="cyc"><span class="ch">{r['cyc']['chain_code']}</span>{r['cyc']['mode']}{conflict_tag}</div>
   <div class="sc"><span class="num">{r['score']}</span><span class="lv">{r['lv']}</span></div>
   <div class="tg">{r['sigs'].replace('|',' ')}</div>
 </div>"""
@@ -137,6 +66,25 @@ h1{{font-size:23px;letter-spacing:2px;color:var(--gold);border-bottom:1px solid 
 </body></html>"""
     open("demo/多层认知关注矩阵.html", "w", encoding="utf-8").write(html)
     print("看板已生成: demo/多层认知关注矩阵.html")
+
+
+def main():
+    rows = []
+    for f in sorted(glob.glob("data/finance/*.json")):
+        d = json.load(open(f, encoding="utf-8"))
+        r = diagnose(d)
+        w = watch_analyze(d)
+        cyc = w["cycle"]
+        rows.append({"d": d, "gua": w["gua_code"], "gua_idx": w["gua_idx"],
+                     "space_mode": w["space_mode"], "cyc": cyc,
+                     "score": w["score"], "lv": w["watch_level"], "lc": w["watch_class"],
+                     "sigs": "|".join(x["type"] for x in w["signals"]),
+                     "tens": "|".join(x["type"] for x in w["tensions"])})
+    rows.sort(key=lambda x: -x["score"])
+    build_html(rows)
+    for r in rows:
+        d = r["d"]
+        print(f"  {d['name']:<6}{r['gua']} 空间{r['space_mode']} 周期{r['cyc']['chain_code']}{r['cyc']['mode']} 张力{r['cyc']['tension']} → 关注{r['score']} {r['lv']}")
 
 
 if __name__ == "__main__":

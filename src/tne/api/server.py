@@ -28,6 +28,7 @@ from tne.space.equivalence import class_of, class_members, count_equivalence_cla
 from tne.space.distance import nearest_neighbors, euclidean
 from tne.trajectory.store import TrajectoryStore
 from tne.trajectory.habit import HabitQuery
+from tne.finance.cognition import cycle_analyze as cyc_analyze, watch_analyze as w_analyze
 
 app = FastAPI(title="TNE-Core 坐标服务", version="0.1.0",
               description="三元九维 19683 认知体系 · 可定位可泛化的符号认知层")
@@ -270,42 +271,7 @@ def finance_endpoint(code: Optional[str] = None):
 
 # ============ 周期传导 /finance/cycle ============
 # K线时间维度=认知链: 日(动能±1%)→周(波段)→月(趋势)→年(根性,±2%)。快慢背离=转折张力。
-_CYCLE_LAYERS = [("day", "quote", "chg_pct", 1.0), ("week", "trend", "two_week_pct", 2.0),
-                 ("month", "trend", "month_pct", 2.0), ("year", "trend", "year_pct", 2.0)]
-_STATE_NAME = {-1: "阴", 0: "衡", 1: "阳"}
-
-
-def _cycle_tri(v, thr):
-    return 1 if v >= thr else (-1 if v <= -thr else 0)
-
-
-def _cycle_analyze(d):
-    """单股周期传导: 周期链四层态 + 反转 + 背离 + 张力指数 + 形态分类。"""
-    chain = []
-    for key, sec, fld, thr in _CYCLE_LAYERS:
-        v = d[sec][fld]
-        chain.append({"layer": key, "name": {"day": "日·动能", "week": "周·波段",
-                                             "month": "月·趋势", "year": "年·根性"}[key],
-                      "pct": v, "state": _cycle_tri(v, thr)})
-    day, week, month, year = (c["state"] for c in chain)
-    revs = sum(1 for i in range(3) if chain[i]["state"] != 0 and chain[i + 1]["state"] != 0
-               and chain[i]["state"] != chain[i + 1]["state"])
-    conflict = day != year
-    tension = revs * 2 + (3 if conflict else 0) + abs(year)
-    if year == 1 and month == 1:
-        mode, cls = "顺势·生发", "strong"
-    elif year == -1 and (day == 1 or week == 1):
-        mode, cls = "反弹·背离", "rebound"
-    elif year == -1 and month == -1:
-        mode, cls = "弱势·收敛", "weak"
-    elif year == 1 and (day == -1 or week == -1):
-        mode, cls = "回踩·背离", "pullback"
-    else:
-        mode, cls = "震荡·待变", "mixed"
-    return {"chain": [{"layer": c["layer"], "name": c["name"], "pct": round(c["pct"], 2),
-                       "state": c["state"], "state_name": _STATE_NAME[c["state"]]} for c in chain],
-            "reversals": revs, "conflict": conflict, "tension": tension,
-            "mode": mode, "mode_class": cls}
+# 逻辑复用 tne.finance.cognition.cycle_analyze
 
 
 @app.get("/finance/cycle")
@@ -321,14 +287,14 @@ def finance_cycle_endpoint(code: Optional[str] = None):
         d = data.get(code)
         if not d:
             raise HTTPException(404, f"未找到股票 {code}")
-        r = _cycle_analyze(d)
+        r = cyc_analyze(d)
         return {"name": d["name"], "code": d["code"], "industry": d["industry"],
                 "close": d["quote"]["close"], "cycle": r}
     summary = []
     for code_key, d in data.items():
-        r = _cycle_analyze(d)
+        r = cyc_analyze(d)
         summary.append({"name": d["name"], "code": d["code"], "industry": d["industry"],
-                        "chain": "".join(_STATE_NAME[c["state"]] for c in r["chain"]),
+                        "chain": r["chain_code"],
                         "mode": r["mode"], "tension": r["tension"]})
     summary.sort(key=lambda x: -x["tension"])
     return {"count": len(summary), "stocks": summary}
@@ -336,35 +302,7 @@ def finance_cycle_endpoint(code: Optional[str] = None):
 
 # ============ 多层认知关注 /finance/watch ============
 # 三层认知空间叠加(空间卦位+时间周期+张力信号) → 关注分级。研究辅助非荐股。
-_WATCH_SPACE = {"强势·生发": 3, "稳健·蓄势": 2, "震荡·待变": 1, "弱势·收敛": 0}
-_WATCH_CYC = {"顺势·生发": 3, "回踩·背离": 3, "反弹·背离": 3, "震荡·待变": 1, "弱势·收敛": 0}
-
-
-def _watch_analyze(d):
-    fm = _fin_mapper()
-    g = fm.map_nine(d)
-    r = fm.diagnose(g, d)
-    cyc = _cycle_analyze(d)
-    s = _WATCH_SPACE[r["mode"]] + _WATCH_CYC[cyc["mode"]]
-    sigs = {x["type"] for x in r["signals"]}
-    tens = {x["type"] for x in r["tensions"]}
-    if {"curiosity", "novelty"} & sigs:
-        s += 1.0
-    if "habit_conflict" in tens:
-        s += 0.5
-    if "boundary" in tens:
-        s -= 0.5  # 估值/风险偏高, 谨慎
-    if cyc["conflict"]:
-        s += 0.5  # 快慢背离=转折验证, 天然高关注
-    if s >= 5.5:
-        lv, lc = "高关注·转折验证", "high"
-    elif s >= 3.5:
-        lv, lc = "中关注·趋势跟踪", "mid"
-    else:
-        lv, lc = "低关注·风险规避", "low"
-    return {"gua_code": r["code_str"], "gua_idx": r["gua_idx"], "space_mode": r["mode"],
-            "cycle": cyc, "signals": r["signals"], "tensions": r["tensions"],
-            "score": round(s, 1), "watch_level": lv, "watch_class": lc}
+# 逻辑复用 tne.finance.cognition.watch_analyze
 
 
 @app.get("/finance/watch")
@@ -380,16 +318,16 @@ def finance_watch_endpoint(code: Optional[str] = None):
         d = data.get(code)
         if not d:
             raise HTTPException(404, f"未找到股票 {code}")
-        w = _watch_analyze(d)
+        w = w_analyze(d)
         return {"name": d["name"], "code": d["code"], "industry": d["industry"],
                 "close": d["quote"]["close"], "watch": w,
                 "disclaimer": "研究辅助, 非投资建议, 不构成荐股"}
     summary = []
     for code_key, d in data.items():
-        w = _watch_analyze(d)
+        w = w_analyze(d)
         summary.append({"name": d["name"], "code": d["code"], "industry": d["industry"],
                         "gua": w["gua_code"], "space_mode": w["space_mode"],
-                        "cycle_chain": w["cycle"]["chain"], "cycle_mode": w["cycle"]["mode"],
+                        "cycle_chain": w["cycle"]["chain_code"], "cycle_mode": w["cycle"]["mode"],
                         "tension": w["cycle"]["tension"], "score": w["score"],
                         "watch_level": w["watch_level"]})
     summary.sort(key=lambda x: -x["score"])
