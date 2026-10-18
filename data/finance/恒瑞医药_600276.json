@@ -1,0 +1,12 @@
+{
+  "name": "恒瑞医药", "code": "600276.SH", "date": "2026-10-16 收盘", "industry": "医药/创新药",
+  "quote": {"close": 46.63, "chg_pct": 0.06, "open": 46.25, "prev_close": 46.60,
+            "high": 47.58, "low": 45.51, "turnover_pct": 1.078, "volume_wy": 6873.61,
+            "amount_yi": 32.09, "pe_ttm": 40.06, "pb": 4.6, "mktcap_yi": 3094.93},
+  "trend": {"month_pct": -1.21, "prev_month_pct": 2.45, "year_pct": -21.72,
+            "two_week_pct": 7.86, "year_high": 65.83, "year_low": 41.89},
+  "finance": {"report": "2026中报", "revenue_yi": 154.56, "net_profit_yi": 44.65,
+              "net_margin_pct": 28.9, "roe_pct": 6.93, "eps": 0.70, "net_parent_yi": 44.65,
+              "total_assets_yi": 0, "prev_year_roe_pct": 12.58, "prev_year_net_yi": 77.11},
+  "sector": "创新药龙头 · 高估值调整期"
+}

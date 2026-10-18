@@ -1,0 +1,12 @@
+{
+  "name": "宁德时代", "code": "300750.SZ", "date": "2026-10-16 收盘", "industry": "新能源/动力电池",
+  "quote": {"close": 277.00, "chg_pct": -0.54, "open": 281.79, "prev_close": 278.50,
+            "high": 282.00, "low": 273.29, "turnover_pct": 0.698, "volume_wy": 2974.24,
+            "amount_yi": 82.21, "pe_ttm": 15.08, "pb": 3.4, "mktcap_yi": 12817.48},
+  "trend": {"month_pct": -4.85, "prev_month_pct": -19.93, "year_pct": -24.58,
+            "two_week_pct": -8.97, "year_high": 468.75, "year_low": 272.00},
+  "finance": {"report": "2026中报", "revenue_yi": 2769.17, "net_profit_yi": 470.31,
+              "net_margin_pct": 17.0, "roe_pct": 11.41, "eps": 9.8, "net_parent_yi": 432.84,
+              "total_assets_yi": 0, "prev_year_roe_pct": 21.42, "prev_year_net_yi": 722.01},
+  "sector": "全球动力电池龙头 · 竞争加剧"
+}

@@ -37,22 +37,22 @@ def map_nine(d):
     g = [0] * 9
     # g1 愿景=行业/月趋势
     g[0] = band(t["month_pct"], 2.0, -2.0)
-    # g2 决断=资金主攻(当日涨幅+量能)
-    g[1] = band(q["chg_pct"] * (1 + q["turnover_pct"]), 1.0, -1.0) if q["chg_pct"] > 0 else -1
+    # g2 决断=资金主攻(当日涨幅+换手)
+    g[1] = band(q["chg_pct"] * (1 + q["turnover_pct"]), 1.0, -1.0)
     # g3 产出=净利率
     g[2] = band(f["net_margin_pct"], 30, 10)
     # g4 方法=ROE
     g[3] = band(f["roe_pct"], 15, 5)
     # g5 主态=两周价格主态
     g[4] = band(t["two_week_pct"], 2.0, -2.0)
-    # g6 协作=市场协同(龙头领涨=阳)
-    g[5] = 1 if "领涨" in d["sector"] else (0 if "板块" in d["sector"] else -1)
-    # g7 输入=估值(PE相对板块: 白酒<15低=阳, >30高=阴)
-    g[6] = band(30 - q["pe_ttm"], 15, -15)  # pe<=15→阳, >=45→阴... 用30-pe, 阈值15/-15
-    # g8 积累=EPS/净资产质量
-    g[7] = band(f["eps"], 3.0, 0.5)
-    # g9 根性=护城河(龙头=阳)
-    g[8] = 1 if "龙头" in d["sector"] else (0 if "板块" in d["sector"] else -1)
+    # g6 协作=市场参与/换手活跃
+    g[5] = band(q["turnover_pct"], 0.7, 0.3)
+    # g7 输入=估值(PE: <=15阳, >=45阴)
+    g[6] = band(30 - q["pe_ttm"], 15, -15)
+    # g8 积累=归母净利规模(亿)
+    g[7] = band(f.get("net_parent_yi", f["net_profit_yi"]), 100, 20)
+    # g9 根性=长期根基(年趋势)
+    g[8] = band(t["year_pct"], 5, -10)
     return g
 
 

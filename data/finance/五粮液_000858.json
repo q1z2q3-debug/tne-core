@@ -1,0 +1,12 @@
+{
+  "name": "五粮液", "code": "000858.SZ", "date": "2026-10-16 收盘", "industry": "白酒/高端消费",
+  "quote": {"close": 72.07, "chg_pct": 1.08, "open": 70.98, "prev_close": 71.30,
+            "high": 72.25, "low": 70.90, "turnover_pct": 0.779, "volume_wy": 3023.14,
+            "amount_yi": 21.73, "pe_ttm": 21.38, "pb": 2.36, "mktcap_yi": 2797.47},
+  "trend": {"month_pct": 2.87, "prev_month_pct": -1.70, "year_pct": -31.97,
+            "two_week_pct": 4.25, "year_high": 110.78, "year_low": 68.68},
+  "finance": {"report": "2026中报", "revenue_yi": 284.17, "net_profit_yi": 89.96,
+              "net_margin_pct": 31.7, "roe_pct": 7.39, "eps": 2.26, "net_parent_yi": 87.53,
+              "total_assets_yi": 0, "prev_year_roe_pct": 7.47, "prev_year_net_yi": 89.54},
+  "sector": "白酒第二龙头 · 高端消费"
+}
