@@ -10,15 +10,21 @@ sys.path.insert(0, "/home/user/Doubao/chats/38446456964142338/tne-core/scripts")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from finance_mapper import map_nine, diagnose
 
-# 贵州茅台 · 2026年9月末→10月中旬 演化快照(基于同花顺日K/月K/财务)
+# 贵州茅台 · 2026年9月末→10月中 演化快照(基于同花顺日K/月K/财务, 6个交易日点)
 MAOTAI = {
     "name": "贵州茅台", "code": "600519.SH", "industry": "白酒/高端消费",
     "points": [
-        {"date": "2026-09-30", "close": 1258.62, "pe": 19.32, "chg": -1.15,
+        {"date": "2026-09-28", "close": 1243.88, "pe": 19.09, "chg": -0.55,
+         "month_pct": -3.5, "two_week": -0.6, "year_pct": -7.6, "turnover": 0.32,
+         "margin": 49.9, "roe": 17.72, "net_yi": 445.17},
+        {"date": "2026-09-30", "close": 1258.62, "pe": 19.32, "chg": 1.20,
          "month_pct": -3.15, "two_week": -0.9, "year_pct": -7.2, "turnover": 0.34,
          "margin": 49.9, "roe": 17.72, "net_yi": 445.17},
         {"date": "2026-10-08", "close": 1255.79, "pe": 19.28, "chg": -0.22,
          "month_pct": -0.2, "two_week": 1.5, "year_pct": -6.5, "turnover": 0.30,
+         "margin": 49.9, "roe": 17.72, "net_yi": 445.17},
+        {"date": "2026-10-12", "close": 1288.00, "pe": 19.77, "chg": 1.96,
+         "month_pct": 2.3, "two_week": 2.9, "year_pct": -5.5, "turnover": 0.35,
          "margin": 49.9, "roe": 17.72, "net_yi": 445.17},
         {"date": "2026-10-14", "close": 1286.00, "pe": 19.74, "chg": 0.87,
          "month_pct": 2.2, "two_week": 2.4, "year_pct": -5.1, "turnover": 0.32,

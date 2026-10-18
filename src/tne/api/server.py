@@ -14,6 +14,7 @@ LLM 通过 function calling 调用的认知层工具。
 from __future__ import annotations
 import os
 import sys
+import json
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -207,3 +208,61 @@ def cognition_endpoint(req: CognitionRequest):
         "neighbors": neighbors,
         "drive": drive,
     }
+
+
+# ============ 九维金融认知 /finance ============
+FIN_BASE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "finance")
+
+
+def _load_finance_data():
+    import glob
+    files = sorted(glob.glob(os.path.join(FIN_BASE, "*.json")))
+    out = {}
+    for f in files:
+        try:
+            d = json.load(open(f, encoding="utf-8"))
+            out[d["code"]] = d
+        except Exception:
+            pass
+    return out
+
+
+def _fin_mapper():
+    # 复用 finance_mapper 的 map_nine/diagnose
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts"))
+    try:
+        import finance_mapper
+        return finance_mapper
+    except Exception:
+        return None
+
+
+@app.get("/finance")
+def finance_endpoint(code: Optional[str] = None):
+    """
+    九维金融认知：读 data/finance 下个股数据 → 九维画像/卦位/认知主态。
+    ?code=600519.SH → 单股诊断; 无code → 全部股票摘要。
+    """
+    fm = _fin_mapper()
+    data = _load_finance_data()
+    if not data:
+        raise HTTPException(404, "未找到金融数据 (data/finance/*.json)")
+    if code:
+        d = data.get(code)
+        if not d:
+            raise HTTPException(404, f"未找到股票 {code}")
+        g = fm.map_nine(d)
+        r = fm.diagnose(g, d)
+        return {"name": d["name"], "code": d["code"], "industry": d["industry"],
+                "vector": r["vector"], "code_str": r["code_str"], "gua_idx": r["gua_idx"],
+                "class_rep": r["class_rep"], "mode": r["mode"], "rec": r["rec"],
+                "transform": r["transform"], "neighbors": r["neighbors"],
+                "tensions": r["tensions"], "signals": r["signals"],
+                "quote": {k: d["quote"][k] for k in ("close", "chg_pct", "pe_ttm", "pb", "turnover_pct")}}
+    summary = []
+    for code_key, d in data.items():
+        g = fm.map_nine(d)
+        r = fm.diagnose(g, d)
+        summary.append({"name": d["name"], "code": d["code"], "industry": d["industry"],
+                        "code_str": r["code_str"], "gua_idx": r["gua_idx"], "mode": r["mode"]})
+    return {"count": len(summary), "stocks": summary}
