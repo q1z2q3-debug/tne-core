@@ -59,6 +59,22 @@ class TrajectoryRequest(BaseModel):
     outcome: Optional[str] = None
     reward: float = 0.0
 
+class CognitionRequest(BaseModel):
+    text: str = Field(..., description="任务/状态的自然语言描述")
+    moving_yaos: Optional[List[int]] = Field(None, description="动爻位 1-9")
+    top_n: int = 5
+
+
+# ---------- 自训 encode 判断器（懒加载）----------
+_judger = None
+
+def get_judger():
+    global _judger
+    if _judger is None:
+        from tne.projector.encoder_judger import TrainedEncoderJudger
+        _judger = TrainedEncoderJudger()
+    return _judger
+
 
 # ---------- 端点 ----------
 @app.get("/health")
@@ -128,3 +144,57 @@ def trajectory_endpoint(req: TrajectoryRequest):
 @app.get("/stats")
 def stats_endpoint():
     return store.class_coverage()
+
+
+# ---------- 认知全景端点（文本 → 完整认知定位）----------
+@app.post("/cognition")
+def cognition_endpoint(req: CognitionRequest):
+    """
+    输入任务/状态的自然语言描述 → 自训 encode 模型判断九维向量，
+    返回完整认知全景：向量+置信度 / 卦位 / 等价类 / 错综互变推演 / 习惯偏置 / 邻域。
+    """
+    if not req.text.strip():
+        raise HTTPException(400, "text 不能为空")
+    judger = get_judger()
+    jr = judger.judge_with_confidence(req.text)
+    vector = jr["vector"]
+    if len(vector) != DIM or any(g not in (-1, 0, 1) for g in vector):
+        raise HTTPException(500, "encode 模型输出非法向量")
+
+    idx = encode(vector)
+    rep = class_of(idx)
+
+    # 结构变换（错/综/错综/互，可选变爻）
+    gua = vector
+    transform = {
+        "cuoo_FC": f_cuoo(gua),
+        "zong_FZ": f_zong(gua),
+        "cuoo_zong_FCZ": f_cuoo_zong(gua),
+        "hu_FH_5dim": f_hu(gua),
+    }
+    if req.moving_yaos:
+        transform["bian_FB"] = f_bian(gua, set(req.moving_yaos))
+
+    # 习惯偏置
+    hb = habit.query(vector)
+
+    # 邻域泛化
+    neighbors = [
+        {"gua_idx": ni, "distance": round(d, 4), "gua_vector": ng,
+         "class_rep": class_of(ni)}
+        for ni, d, ng in nearest_neighbors(vector, top_n=req.top_n)
+    ]
+
+    return {
+        "text": req.text,
+        "vector": vector,
+        "confidence": jr["confidence"],
+        "gua_idx": idx,
+        "gua_str": gua_str(vector),
+        "yao_str": gua_yao_str(vector),
+        "class_rep": rep,
+        "class_members": class_members(idx),
+        "transform": transform,
+        "habit": hb,
+        "neighbors": neighbors,
+    }
