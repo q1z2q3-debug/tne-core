@@ -1,0 +1,12 @@
+{
+  "name": "紫金矿业", "code": "601899.SH", "date": "2026-10-16 收盘", "industry": "有色/周期",
+  "quote": {"close": 29.92, "chg_pct": 1.84, "open": 29.70, "prev_close": 29.38,
+            "high": 30.29, "low": 29.15, "turnover_pct": 0.897, "volume_wy": 18472.97,
+            "amount_yi": 55.07, "pe_ttm": 11.76, "pb": 3.5, "mktcap_yi": 7955.97},
+  "trend": {"month_pct": 0.44, "prev_month_pct": -11.52, "year_pct": -13.20,
+            "two_week_pct": -3.17, "year_high": 44.94, "year_low": 24.42},
+  "finance": {"report": "2026中报", "revenue_yi": 1941.78, "net_profit_yi": 498.13,
+              "net_margin_pct": 25.7, "roe_pct": 19.03, "eps": 1.47, "net_parent_yi": 391.70,
+              "total_assets_yi": 5413.54, "prev_year_roe_pct": 27.91, "prev_year_net_yi": 517.77},
+  "sector": "黄金铜龙头 · 高盈利强周期"
+}

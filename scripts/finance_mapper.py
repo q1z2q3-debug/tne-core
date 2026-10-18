@@ -47,8 +47,9 @@ def map_nine(d):
     g[4] = band(t["two_week_pct"], 2.0, -2.0)
     # g6 协作=市场参与/换手活跃
     g[5] = band(q["turnover_pct"], 0.7, 0.3)
-    # g7 输入=估值(PE: <=15阳, >=45阴)
-    g[6] = band(30 - q["pe_ttm"], 15, -15)
+    # g7 输入=估值(PE: <=15阳, >=45阴; 亏损PE<=0判阴,估值失真)
+    pe = q["pe_ttm"]
+    g[6] = -1 if pe <= 0 else band(30 - pe, 15, -15)
     # g8 积累=归母净利规模(亿)
     g[7] = band(f.get("net_parent_yi", f["net_profit_yi"]), 100, 20)
     # g9 根性=长期根基(年趋势)

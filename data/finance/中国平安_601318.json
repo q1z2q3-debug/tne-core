@@ -1,0 +1,12 @@
+{
+  "name": "中国平安", "code": "601318.SH", "date": "2026-10-16 收盘", "industry": "保险/金融",
+  "quote": {"close": 51.88, "chg_pct": 0.19, "open": 51.43, "prev_close": 51.78,
+            "high": 51.88, "low": 51.01, "turnover_pct": 0.623, "volume_wy": 6645.37,
+            "amount_yi": 34.24, "pe_ttm": 5.90, "pb": 0.65, "mktcap_yi": 9394.24},
+  "trend": {"month_pct": -2.65, "prev_month_pct": -4.53, "year_pct": -24.15,
+            "two_week_pct": -2.60, "year_high": 74.88, "year_low": 46.90},
+  "finance": {"report": "2026中报", "revenue_yi": 5751.38, "net_profit_yi": 1075.13,
+              "net_margin_pct": 18.7, "roe_pct": 9.01, "eps": 5.30, "net_parent_yi": 925.85,
+              "total_assets_yi": 143009.54, "prev_year_roe_pct": 13.47, "prev_year_net_yi": 1347.78},
+  "sector": "综合金融龙头 · 深度调整低估值"
+}
