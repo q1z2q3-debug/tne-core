@@ -332,3 +332,66 @@ def finance_cycle_endpoint(code: Optional[str] = None):
                         "mode": r["mode"], "tension": r["tension"]})
     summary.sort(key=lambda x: -x["tension"])
     return {"count": len(summary), "stocks": summary}
+
+
+# ============ 多层认知关注 /finance/watch ============
+# 三层认知空间叠加(空间卦位+时间周期+张力信号) → 关注分级。研究辅助非荐股。
+_WATCH_SPACE = {"强势·生发": 3, "稳健·蓄势": 2, "震荡·待变": 1, "弱势·收敛": 0}
+_WATCH_CYC = {"顺势·生发": 3, "回踩·背离": 3, "反弹·背离": 3, "震荡·待变": 1, "弱势·收敛": 0}
+
+
+def _watch_analyze(d):
+    fm = _fin_mapper()
+    g = fm.map_nine(d)
+    r = fm.diagnose(g, d)
+    cyc = _cycle_analyze(d)
+    s = _WATCH_SPACE[r["mode"]] + _WATCH_CYC[cyc["mode"]]
+    sigs = {x["type"] for x in r["signals"]}
+    tens = {x["type"] for x in r["tensions"]}
+    if {"curiosity", "novelty"} & sigs:
+        s += 1.0
+    if "habit_conflict" in tens:
+        s += 0.5
+    if "boundary" in tens:
+        s -= 0.5  # 估值/风险偏高, 谨慎
+    if cyc["conflict"]:
+        s += 0.5  # 快慢背离=转折验证, 天然高关注
+    if s >= 5.5:
+        lv, lc = "高关注·转折验证", "high"
+    elif s >= 3.5:
+        lv, lc = "中关注·趋势跟踪", "mid"
+    else:
+        lv, lc = "低关注·风险规避", "low"
+    return {"gua_code": r["code_str"], "gua_idx": r["gua_idx"], "space_mode": r["mode"],
+            "cycle": cyc, "signals": r["signals"], "tensions": r["tensions"],
+            "score": round(s, 1), "watch_level": lv, "watch_class": lc}
+
+
+@app.get("/finance/watch")
+def finance_watch_endpoint(code: Optional[str] = None):
+    """
+    多层认知关注：三层认知空间(空间卦位+时间周期+张力信号)叠加 → 关注分级。
+    研究辅助非荐股。?code=600519.SH → 单股整合诊断; 无code → 全部股票关注分级。
+    """
+    data = _load_finance_data()
+    if not data:
+        raise HTTPException(404, "未找到金融数据 (data/finance/*.json)")
+    if code:
+        d = data.get(code)
+        if not d:
+            raise HTTPException(404, f"未找到股票 {code}")
+        w = _watch_analyze(d)
+        return {"name": d["name"], "code": d["code"], "industry": d["industry"],
+                "close": d["quote"]["close"], "watch": w,
+                "disclaimer": "研究辅助, 非投资建议, 不构成荐股"}
+    summary = []
+    for code_key, d in data.items():
+        w = _watch_analyze(d)
+        summary.append({"name": d["name"], "code": d["code"], "industry": d["industry"],
+                        "gua": w["gua_code"], "space_mode": w["space_mode"],
+                        "cycle_chain": w["cycle"]["chain"], "cycle_mode": w["cycle"]["mode"],
+                        "tension": w["cycle"]["tension"], "score": w["score"],
+                        "watch_level": w["watch_level"]})
+    summary.sort(key=lambda x: -x["score"])
+    return {"count": len(summary), "stocks": summary,
+            "disclaimer": "研究辅助, 非投资建议, 不构成荐股"}
