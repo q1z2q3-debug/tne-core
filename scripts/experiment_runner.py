@@ -268,6 +268,29 @@ def run_long(pool):
     analyze(df, "周K长历史", 52 / 12)
 
 
+def neutralized_reversal(df):
+    """检验G: vol中性 × tscore3 双重排序反转多空。
+    每截面按vol分5档(隔离低波动异象), 每档内按tscore3做弱/空强, 5档平均。
+    返回 DataFrame[date, spread]。"""
+    legs = []
+    for dt, sub in df.groupby("date"):
+        if len(sub) < 15 or sub["vol"].nunique() < 2:
+            continue
+        # vol 分层(5档)
+        sub = sub.assign(vbin=pd.qcut(sub["vol"].rank(method="first"), 5, labels=False)
+                         if sub["vol"].nunique() > 5 else 0)
+        spreads = []
+        for b, g in sub.groupby("vbin"):
+            if len(g) < 6:
+                continue
+            g = g.sort_values("tscore3")
+            third = max(1, len(g) // 3)
+            spreads.append(g.iloc[:third]["ret60"].mean() - g.iloc[-third]["ret60"].mean())
+        if spreads:
+            legs.append({"date": dt, "spread": float(np.mean(spreads))})
+    return pd.DataFrame(legs)
+
+
 def analyze(df, src, ann_period):
     print(f"\n[检验A] 主态分层 · 未来收益 ({src})")
     grp = df.groupby("mode")[["ret20", "ret60", "tscore3"]].mean().reindex(["strong", "neutral", "weak"])
@@ -384,6 +407,31 @@ def analyze(df, src, ann_period):
     print(f"\n[检验E'基线] 200次打乱tscore3的反转spread分布: 均值{sarr.mean()*100:+.2f}pp std{sarr.std()*100:.2f}pp "
           f"| 真实spread({spr.mean()*100:+.2f}pp)位于随机之上 {pct3*100:.1f}% 分位 "
           f"{'有信号(>95%)' if pct3>0.95 else '无信号'}")
+
+    # ---- 检验G: vol中性 × tscore3 双重排序反转 ----
+    if "vol" in df.columns and df["vol"].nunique() > 2:
+        gdf = neutralized_reversal(df)
+        if len(gdf) > 10:
+            gs = gdf["spread"]
+            t, p = stats.ttest_1samp(gs, 0)
+            ann = (1 + gs.mean()) ** ann_period - 1
+            win = (gs > 0).mean()
+            print(f"\n[检验G] vol中性双重排序反转(每vol档内做弱/空强) · ret60 ({src})")
+            print(f"  截面数={len(gs)}  平均spread={gs.mean()*100:+.2f}pp/60d  年化≈{ann*100:+.1f}% "
+                  f"t={t:.2f} p={p:.4f} 胜率={win*100:.0f}%")
+            rng4 = np.random.default_rng(23)
+            gs_arr = []
+            for _ in range(200):
+                dd = df.copy()
+                dd["tscore3"] = rng4.permutation(dd["tscore3"].values)
+                g0 = neutralized_reversal(dd)
+                gs_arr.append(g0["spread"].mean() if len(g0) else np.nan)
+            gg = np.array([x for x in gs_arr if not np.isnan(x)])
+            pct4 = (gg < gs.mean()).mean()
+            print(f"  [基线] 200次打乱: 均值{gg.mean()*100:+.2f}pp std{gg.std()*100:.2f}pp | "
+                  f"真实位于随机之上 {pct4*100:.1f}% 分位 {'有信号(>95%)' if pct4>0.95 else '无信号'}")
+        else:
+            print(f"\n[检验G] vol中性双重排序: 截面不足({len(gdf)})")
 
     # ---- 随机基线: 打乱态重算IC ----
     rng = np.random.default_rng(42)
