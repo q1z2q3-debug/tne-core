@@ -20,21 +20,26 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 from .space import DIM, validate
 from .operators import f_bian
+from ..config import default_config
 
 
 # ---------------------------------------------------------------------------
 # 律3 · 穷点检测器（Exhaustion）
 # ---------------------------------------------------------------------------
-def exhaustion(gua: List[int]) -> Dict[str, float]:
+def exhaustion(gua: List[int], weights: Optional[Tuple[float, float, float]] = None) -> Dict[str, float]:
     """穷度 Ex(G) ∈ [0,1]，卦的饱和/壅塞/极 程度。
 
     三分量：
       polarity   净极性张度 = |Σg|/9      全同号=1（阳极/阴极穷）
       saturation 非零爻比例 = 非零爻数/9   全实=1（饱和穷）
       congestion 最长连续同号段/9          连排=1（壅塞穷）
-    total = 0.4*polarity + 0.4*saturation + 0.2*congestion
+    total = w_p*polarity + w_s*saturation + w_c*congestion
+    权重默认经验校准 (0.5,0.1,0.4)，可用 weights 参数自定义。
     """
     validate(gua)
+    if weights is None:
+        weights = default_config.get("bian", "exhaustion_weights", (0.5, 0.1, 0.4))
+    wp, ws, wc = weights
     s = sum(gua)
     polarity = abs(s) / DIM
     saturation = sum(1 for g in gua if g != 0) / DIM
@@ -51,13 +56,15 @@ def exhaustion(gua: List[int]) -> Dict[str, float]:
             run += 1
         best = max(best, run)
     congestion = best / DIM
-    total = 0.4 * polarity + 0.4 * saturation + 0.2 * congestion
+    total = wp * polarity + ws * saturation + wc * congestion
     return {"polarity": round(polarity, 4), "saturation": round(saturation, 4),
             "congestion": round(congestion, 4), "total": round(total, 4)}
 
 
-def is_exhausted(gua: List[int], threshold: float = 0.6) -> bool:
-    """穷则变的判定：穷度超过阈值即触发变。"""
+def is_exhausted(gua: List[int], threshold: Optional[float] = None) -> bool:
+    """穷则变的判定：穷度超过阈值即触发变。阈值默认全集 P90=0.42，可自定义。"""
+    if threshold is None:
+        threshold = default_config.get("bian", "exhaustion_threshold", 0.42)
     return exhaustion(gua)["total"] >= threshold
 
 
@@ -97,10 +104,14 @@ def tension(gua: List[int]) -> Dict:
 # ---------------------------------------------------------------------------
 # 律4 · 时中（变通者，趣时者也）
 # ---------------------------------------------------------------------------
-def timing_weights(gua: Optional[List[int]] = None) -> Dict[int, float]:
-    """变位时中权重：中位(g5)稳、边缘(g1/g9)激。权 = 1 + |爻位-中位|/4 ∈ [1,2]。"""
+def timing_weights(gua: Optional[List[int]] = None,
+                   divisor: Optional[float] = None) -> Dict[int, float]:
+    """变位时中权重：中位(g5)稳、边缘(g1/g9)激。权 = 1 + |爻位-中位|/divisor ∈ [1,2]。
+    divisor 默认 4.0（config），可自定义。"""
+    if divisor is None:
+        divisor = default_config.get("bian", "timing_divisor", 4.0)
     mid = 5
-    return {i + 1: round(1 + abs(i + 1 - mid) / 4, 3) for i in range(DIM)}
+    return {i + 1: round(1 + abs(i + 1 - mid) / divisor, 3) for i in range(DIM)}
 
 
 def chosen_position(gua: List[int]) -> int:
@@ -170,7 +181,7 @@ def contingent(gua: List[int], moving_set: List[int],
 # 整合 · 变易流程 F_V（穷 → 变 → 通 → 久）
 # ---------------------------------------------------------------------------
 def f_v(gua: List[int], target: Optional[List[int]] = None,
-        ex_threshold: float = 0.6, k: int = 3) -> Dict:
+        ex_threshold: Optional[float] = None, k: Optional[int] = None) -> Dict:
     """变易流程（第6类算子综合）：
       1 测穷   exhaustion(gua)   ——穷则变
       2 择时   chosen_position() ——趣时
@@ -179,8 +190,13 @@ def f_v(gua: List[int], target: Optional[List[int]] = None,
       5 通久   benefit() 评估，只留通/利
       6 权变   contingent() 输出候选集（唯变所适）
     若未穷则不触发（通则久，保持稳定）。
+    ex_threshold/k 默认从 config（穷度P90 / 候选数3），均可自定义。
     """
     validate(gua)
+    if ex_threshold is None:
+        ex_threshold = default_config.get("bian", "exhaustion_threshold", 0.42)
+    if k is None:
+        k = default_config.get("bian", "f_v_k", 3)
     rep = exhaustion(gua)
     if not is_exhausted(gua, ex_threshold):
         # 未穷 → 通则久（保持稳定，不触发）

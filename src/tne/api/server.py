@@ -54,7 +54,7 @@ class TransformRequest(BaseModel):
 class BianRequest(BaseModel):
     vector: List[int]
     target: Optional[List[int]] = Field(None, description="目标态(感/利评估用)，九维三态")
-    ex_threshold: float = Field(0.6, description="穷点触发阈值，穷度>=此值则触发变")
+    ex_threshold: Optional[float] = Field(None, description="穷点触发阈值(留空用config校准值0.42)")
 
 class HabitRequest(BaseModel):
     vector: List[int]

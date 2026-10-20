@@ -25,21 +25,30 @@ TNE-Core · 认知动力引擎（Drive）
 """
 from __future__ import annotations
 from typing import List, Dict, Any, Optional
+from ..config import default_config
 
 
 class TensionDetector:
     """
-    张力检测。输入：习惯查询结果 + 九维置信度 + 邻域信息。
+    张力检测。输入：习惯查询结果 + 九维置信度 + 邻域信息 + 卦向量(穷点检测)。
+    所有阈值/强度默认从 config 读，可构造参数覆盖。
     """
 
-    def __init__(self, boundary_conf_threshold: float = 0.60,
-                 novelty_freq_threshold: int = 3,
-                 boundary_neighbor_gap: float = 0.15,
-                 exhaustion_threshold: float = 0.6):
-        self.boundary_conf = boundary_conf_threshold
-        self.novelty_freq = novelty_freq_threshold
-        self.neighbor_gap = boundary_neighbor_gap
-        self.exhaustion_threshold = exhaustion_threshold
+    def __init__(self, boundary_conf_threshold: Optional[float] = None,
+                 novelty_freq_threshold: Optional[int] = None,
+                 boundary_neighbor_gap: Optional[float] = None,
+                 exhaustion_threshold: Optional[float] = None,
+                 strength: Optional[Dict[str, float]] = None):
+        self.boundary_conf = (boundary_conf_threshold if boundary_conf_threshold is not None
+                              else default_config.get("tension", "boundary_conf", 0.60))
+        self.novelty_freq = (novelty_freq_threshold if novelty_freq_threshold is not None
+                             else default_config.get("tension", "novelty_freq", 3))
+        self.neighbor_gap = (boundary_neighbor_gap if boundary_neighbor_gap is not None
+                             else default_config.get("tension", "neighbor_gap", 0.15))
+        self.exhaustion_threshold = (exhaustion_threshold if exhaustion_threshold is not None
+                                     else default_config.get("tension", "exhaustion_threshold",
+                                                             default_config.get("bian", "exhaustion_threshold", 0.42)))
+        self.strength = strength or default_config.get("tension", "strength", {})
 
     def detect(self, habit: Dict[str, Any],
                confidence: Optional[List[float]] = None,
@@ -57,7 +66,8 @@ class TensionDetector:
         if mode == "explore" or freq < self.novelty_freq:
             tensions.append({
                 "type": "novelty",
-                "strength": 0.9 if freq == 0 else 0.6,
+                "strength": self.strength.get("novelty_zero", 0.9) if freq == 0
+                            else self.strength.get("novelty_low", 0.6),
                 "note": f"等价类经验不足（命中 {freq} 次），这是新领域",
             })
 
@@ -67,7 +77,8 @@ class TensionDetector:
             if low:
                 tensions.append({
                     "type": "boundary",
-                    "strength": 0.5 + 0.1 * len(low),
+                    "strength": self.strength.get("boundary_base", 0.5)
+                                + self.strength.get("boundary_per_dim", 0.1) * len(low),
                     "note": f"第 {[i+1 for i in low]} 维判断置信度偏低，边界模糊",
                 })
         if neighbors and len(neighbors) >= 2:
@@ -75,7 +86,7 @@ class TensionDetector:
             if abs(d0 - d1) < self.neighbor_gap and d1 > 0:
                 tensions.append({
                     "type": "boundary",
-                    "strength": 0.7,
+                    "strength": self.strength.get("boundary_near", 0.7),
                     "note": f"两个邻近卦位距离接近（{d0} vs {d1}），判断在边缘摇摆",
                 })
 
@@ -84,7 +95,7 @@ class TensionDetector:
         if mode == "habit_weak":
             tensions.append({
                 "type": "habit_conflict",
-                "strength": 0.8,
+                "strength": self.strength.get("habit_conflict", 0.8),
                 "note": "历史行为成功率不足，习惯可能不适用，需质疑旧行为",
             })
 
@@ -93,8 +104,7 @@ class TensionDetector:
             try:
                 from tne.space.bian import exhaustion as _ex, f_v as _fv
                 ex = _ex(gua)["total"]
-                if ex >= self.exhaustion_threshold:
-                    cands = _fv(gua, target=None)["candidates"]
+                if ex >= self.exhaustion_threshold:                    cands = _fv(gua, target=None)["candidates"]
                     moves = [f"动{c[0]}爻" for c in cands if c[0] is not None] or ["保持"]
                     tensions.append({
                         "type": "exhaustion",
