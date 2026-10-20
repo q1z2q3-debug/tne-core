@@ -183,7 +183,9 @@ def f_v(gua: List[int], target: Optional[List[int]] = None,
     validate(gua)
     rep = exhaustion(gua)
     if not is_exhausted(gua, ex_threshold):
-        return {"triggered": False, "exhaustion": rep, "candidates": [(None, gua, None)]}
+        # 未穷 → 通则久（保持稳定，不触发）
+        return {"triggered": False, "exhaustion": rep, "chosen": None,
+                "candidates": [(None, gua, None)], "通": True, "久": True}
     # 穷点端 + 推荡边界 并集作为候选发动位
     moving_set = list(set(exhaustion_positions(gua)) | set(tension(gua)["boundaries"]))
     if not moving_set:

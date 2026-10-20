@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from tne.space.space import encode, decode, gua_str, gua_yao_str, TOTAL_STATES, DIM
 from tne.space.operators import f_cuoo, f_zong, f_cuoo_zong, f_hu, f_bian
+from tne.space.bian import f_v, exhaustion, is_exhausted, exhaustion_positions, tension
 from tne.space.equivalence import class_of, class_members, count_equivalence_classes
 from tne.space.distance import nearest_neighbors, euclidean
 from tne.trajectory.store import TrajectoryStore
@@ -49,6 +50,11 @@ class SearchRequest(BaseModel):
 class TransformRequest(BaseModel):
     vector: List[int]
     moving_yaos: Optional[List[int]] = Field(None, description="动爻位 1-9，不传则只算错综互")
+
+class BianRequest(BaseModel):
+    vector: List[int]
+    target: Optional[List[int]] = Field(None, description="目标态(感/利评估用)，九维三态")
+    ex_threshold: float = Field(0.6, description="穷点触发阈值，穷度>=此值则触发变")
 
 class HabitRequest(BaseModel):
     vector: List[int]
@@ -129,6 +135,28 @@ def transform_endpoint(req: TransformRequest):
         out["bian_FB"] = f_bian(g, set(req.moving_yaos))
     return out
 
+@app.post("/transform/bian")
+def bian_endpoint(req: BianRequest):
+    """变算子：穷点检测 + 变易流程(穷→变→通→久)。输入卦位，输出穷度与候选变集。"""
+    if len(req.vector) != DIM or any(g not in (-1, 0, 1) for g in req.vector):
+        raise HTTPException(400, "必须是 9 维三态向量")
+    if req.target is not None and (len(req.target) != DIM or any(g not in (-1, 0, 1) for g in req.target)):
+        raise HTTPException(400, "target 必须是 9 维三态向量")
+    g = req.vector
+    rep = exhaustion(g)
+    r = f_v(g, target=req.target, ex_threshold=req.ex_threshold)
+    return {
+        "original": g,
+        "exhaustion": rep,
+        "triggered": r["triggered"],
+        "chosen": r.get("chosen"),
+        "candidates": [
+            {"move_yao": p, "new_gua": ng, "benefit": b}
+            for p, ng, b in r["candidates"] if p is not None
+        ],
+        "通": r["通"], "久": r["久"],
+    }
+
 @app.post("/habit")
 def habit_endpoint(req: HabitRequest):
     if len(req.vector) != DIM or any(g not in (-1, 0, 1) for g in req.vector):
@@ -177,6 +205,21 @@ def cognition_endpoint(req: CognitionRequest):
     if req.moving_yaos:
         transform["bian_FB"] = f_bian(gua, set(req.moving_yaos))
 
+    # 变算子：穷点检测 → 是否需变 → 变易候选（穷则变，变则通）
+    bian = None
+    try:
+        br = f_v(gua, target=None)
+        bian = {
+            "exhaustion": br["exhaustion"],
+            "triggered": br["triggered"],
+            "chosen": br.get("chosen"),
+            "candidates": [{"move_yao": p, "new_gua": ng, "benefit": b}
+                           for p, ng, b in br["candidates"] if p is not None],
+            "通": br["通"], "久": br["久"],
+        }
+    except Exception:
+        bian = None
+
     # 习惯偏置
     hb = habit.query(vector)
 
@@ -205,6 +248,7 @@ def cognition_endpoint(req: CognitionRequest):
         "class_rep": rep,
         "class_members": class_members(idx),
         "transform": transform,
+        "bian": bian,
         "habit": hb,
         "neighbors": neighbors,
         "drive": drive,
