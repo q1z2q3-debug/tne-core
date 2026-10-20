@@ -230,11 +230,11 @@ def cognition_endpoint(req: CognitionRequest):
         for ni, d, ng in nearest_neighbors(vector, top_n=req.top_n)
     ]
 
-    # 认知动力引擎：张力检测 → 动力信号
+    # 认知动力引擎：张力检测 → 动力信号（含穷点检测，gua 传入）
     drive = None
     try:
         from tne.drive.tension import detect_and_generate
-        drive = detect_and_generate(hb, jr["confidence"], neighbors)
+        drive = detect_and_generate(hb, jr["confidence"], neighbors, gua)
     except Exception:
         drive = None
 

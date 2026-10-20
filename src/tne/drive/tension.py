@@ -10,10 +10,14 @@ TNE-Core · 认知动力引擎（Drive）
   - boundary       边界：判断在多卦位间摇摆 / 置信度低 → 深思（审慎权衡）
   - habit_conflict 习惯冲突：习惯建议 vs 当前语义相悖 → 元认知（质疑旧行为）
 
-三类动力信号：
+第4类张力（从《周易》"穷则变"提炼）：
+  - exhaustion     穷：九维态饱和/壅塞/达极限（穷点检测器）→ 变易（主动求变）
+
+三类动力信号（+ 变易）：
   - curiosity       探索：不套用旧经验，主动尝试新行为并记录
   - deliberation    深思：在多个候选间更审慎地权衡
   - meta_reasoning  元认知：质疑"习惯在这里是否适用"
+  - transformation  变易：穷则变，变则通——把壅塞导向新通路
 
 设计：
   TensionDetector 检测当前态的三类张力
@@ -30,16 +34,20 @@ class TensionDetector:
 
     def __init__(self, boundary_conf_threshold: float = 0.60,
                  novelty_freq_threshold: int = 3,
-                 boundary_neighbor_gap: float = 0.15):
+                 boundary_neighbor_gap: float = 0.15,
+                 exhaustion_threshold: float = 0.6):
         self.boundary_conf = boundary_conf_threshold
         self.novelty_freq = novelty_freq_threshold
         self.neighbor_gap = boundary_neighbor_gap
+        self.exhaustion_threshold = exhaustion_threshold
 
     def detect(self, habit: Dict[str, Any],
                confidence: Optional[List[float]] = None,
-               neighbors: Optional[List[Dict]] = None) -> List[Dict[str, Any]]:
+               neighbors: Optional[List[Dict]] = None,
+               gua: Optional[List[int]] = None) -> List[Dict[str, Any]]:
         """
         返回检测到的张力列表：[{type, strength, note}]
+        gua: 九维三态向量，用于穷点检测（穷则变）。
         """
         tensions = []
         freq = habit.get("freq", 0)
@@ -80,6 +88,23 @@ class TensionDetector:
                 "note": "历史行为成功率不足，习惯可能不适用，需质疑旧行为",
             })
 
+        # 4. exhaustion：穷点检测（穷则变，变则通）
+        if gua is not None:
+            try:
+                from tne.space.bian import exhaustion as _ex, f_v as _fv
+                ex = _ex(gua)["total"]
+                if ex >= self.exhaustion_threshold:
+                    cands = _fv(gua, target=None)["candidates"]
+                    moves = [f"动{c[0]}爻" for c in cands if c[0] is not None] or ["保持"]
+                    tensions.append({
+                        "type": "exhaustion",
+                        "strength": round(ex, 2),
+                        "note": f"九维态穷度 {ex:.2f}≥{self.exhaustion_threshold}，已饱和/壅塞/达极限；"
+                                f"穷则变，变则通，候选转变：{'、'.join(moves)}",
+                    })
+            except Exception:
+                pass
+
         # 去重（同 type 保留最强）
         seen = {}
         for t in tensions:
@@ -101,6 +126,8 @@ class SignalGenerator:
             "当前判断在多个邻近卦位/维度间摇摆（置信度不足或边界接近）。注入「深思动力」：不要急于定论，先对每个候选做更审慎的权衡，量化不确定性后再决策。"),
         "habit_conflict": ("meta_reasoning",
             "检测到习惯可能不适用（历史行为成功率不足/与当前语义冲突）。注入「元认知动力」：质疑'我的习惯在这里是否适用'，主动重新评估旧行为，必要时打破惯例。"),
+        "exhaustion": ("transformation",
+            "当前认知状态已穷（九维态饱和/壅塞/达到极限）。注入「变易动力」：穷则变，变则通，通则久——停止在旧姿态上空转，主动寻找状态转变，把壅塞导向新的通路，再评估转变是否通达。"),
     }
 
     def generate(self, tensions: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -134,9 +161,10 @@ class SignalGenerator:
 
 def detect_and_generate(habit: Dict[str, Any],
                         confidence: Optional[List[float]] = None,
-                        neighbors: Optional[List[Dict]] = None) -> Dict[str, Any]:
-    """一步完成：张力检测 + 动力信号生成。"""
+                        neighbors: Optional[List[Dict]] = None,
+                        gua: Optional[List[int]] = None) -> Dict[str, Any]:
+    """一步完成：张力检测 + 动力信号生成。gua 用于穷点检测（穷则变）。"""
     det = TensionDetector()
     gen = SignalGenerator()
-    tensions = det.detect(habit, confidence, neighbors)
+    tensions = det.detect(habit, confidence, neighbors, gua)
     return {"tensions": tensions, **gen.generate(tensions)}
