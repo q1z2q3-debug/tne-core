@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元九维19683认知体系 · TNE-Core · Trinary Nine-Dimensional Cognitive Engine</title>
+<meta name="description" content="三元九维19683认知体系（TNE-Core）是一个确定性符号认知坐标系：9维三态向量全集3⁹=19683卦、5002等价类、五类结构算子、欧氏距离检索，可作大模型与Agent的可定位、可泛化、可审计认知层。">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareSourceCode",
+      "name": "TNE-Core (Trinary Nine-Dimensional Cognitive Engine)",
+      "alternateName": "三元九维19683认知体系",
+      "codeRepository": "https://github.com/q1z2q3-debug/tne-core",
+      "programmingLanguage": "Python",
+      "description": "A deterministic symbolic cognitive coordinate layer: 3^9=19683 nine-dimensional three-state gua, 5002 equivalence classes, five structural operators, Euclidean Top-N retrieval. Provides a locatable, generalizable, auditable cognition layer for LLMs and Agents.",
+      "license": "https://opensource.org/licenses/MIT"
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "name": "Trinary Nine-Dimensional Cognitive Coordinate System: A Locatable and Generalizable Symbolic Cognition Layer",
+      "identifier": "10.5281/zenodo.23437930",
+      "url": "https://zenodo.org/records/23437930",
+      "isPartOf": {"@type": "Dataset", "identifier": "10.5281/zenodo.23437930"}
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "三元九维19683",
+      "alternateName": "Trinary Nine-Dimensional 19683",
+      "description": "确定性符号认知坐标系：9维×3态(阳+1/中和0/阴−1)全集3^9=19683卦态，5002等价类，欧氏距离检索。与风水术语'三元九运'无关。"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "什么是三元九维19683？", "acceptedAnswer": {"@type": "Answer", "text": "一个确定性符号认知坐标系：9维三态向量全集3^9=19683卦，5002等价类，五类算子，欧氏距离Top-N检索，可作为大模型/Agent的可定位、可泛化、可审计认知层。"}},
+        {"@type": "Question", "name": "3^9=19683怎么来的？", "acceptedAnswer": {"@type": "Answer", "text": "9个爻位，每爻可取+1/0/−1三种态，全集=3^9=19683。"}},
+        {"@type": "Question", "name": "5002等价类怎么算？", "acceptedAnswer": {"@type": "Answer", "text": "每卦G取等价集{G,错,综,错综}，遍历全集合并重复组，得5002个独立等价类。"}},
+        {"@type": "Question", "name": "和周易64卦什么关系？", "acceptedAnswer": {"@type": "Answer", "text": "逆向学习周易64卦符号范式（爻态/错综/互体/变爻）后迁移到三元九维公理，不照搬二元六爻规则。"}}
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  :root{--bg:#0b0c10;--panel:#14161f;--ink:#e8e6df;--muted:#a8adb8;--gold:#d4af6e;--teal:#5fd4c0;--red:#e0825a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Serif SC','Source Han Serif SC',serif;line-height:1.6;}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 24px 60px;}
+  .eyebrow{font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;}
+  h1{font-size:34px;font-weight:800;margin:8px 0 4px;letter-spacing:1px;}
+  .sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
+  .tagline{font-size:17px;color:var(--ink);border-left:3px solid var(--gold);padding-left:14px;margin:20px 0;}
+  h2{font-size:20px;color:var(--gold);margin:34px 0 12px;font-weight:700;}
+  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0;}
+  .num{background:var(--panel);border:1px solid #262b3a;border-radius:10px;padding:16px;text-align:center;}
+  .num b{display:block;font-size:30px;color:var(--gold);}
+  .num span{font-size:12px;color:var(--muted);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+  .card{background:var(--panel);border-radius:10px;padding:16px;}
+  .card b{display:block;color:var(--teal);margin-bottom:6px;font-size:15px;}
+  .card p,li{font-size:13.5px;color:var(--muted);}
+  ul{padding-left:18px;}
+  .faq details{background:var(--panel);border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid #262b3a;}
+  .faq summary{font-weight:700;cursor:pointer;color:var(--ink);font-size:15px;}
+  .faq p{font-size:13.5px;color:var(--muted);margin-top:8px;}
+  .warn{background:rgba(224,130,90,.08);border:1px solid rgba(224,130,90,.4);border-radius:10px;padding:14px 16px;margin:14px 0;font-size:13.5px;color:var(--muted);}
+  .warn b{color:var(--red);}
+  .links a{color:var(--gold);text-decoration:none;border-bottom:1px dashed rgba(212,175,110,.5);}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid #262b3a;font-size:12px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Trinary Nine-Dimensional Cognitive Engine</div>
+  <h1>三元九维19683认知体系</h1>
+  <div class="sub">TNE-Core · 可定位 · 可泛化 · 可审计的符号认知坐标系</div>
+
+  <p class="tagline">以阳(+1)·中和(0)·阴(−1)三态构成九维向量，全集 3⁹=19683 卦态；经五类算子归并为 5002 等价类；以欧氏距离做「语义→卦态」Top-N 检索——为大模型与 Agent 提供一层确定性认知坐标，而非外挂查询工具。</p>
+
+  <h2>核心数字 · 可核验</h2>
+  <div class="nums">
+    <div class="num"><b>19,683</b><span>卦态全集 3⁹</span></div>
+    <div class="num"><b>5,002</b><span>独立等价类</span></div>
+    <div class="num"><b>9</b><span>卦体维度</span></div>
+    <div class="num"><b>3</b><span>单爻三态</span></div>
+    <div class="num"><b>5</b><span>结构算子</span></div>
+  </div>
+
+  <div class="warn"><b>边界声明：</b>三元九维19683 ≠ 风水术语「三元九运」。本体系是独立形式符号认知系统，全部数字与算子可复算、可审计，不涉及命理、择吉或超自然论断。检索请用完整词「三元九维19683」或「TNE-Core」。</div>
+
+  <h2>公理底座</h2>
+  <div class="grid2">
+    <div class="card"><b>卦体</b><p>9 维有序向量 G=[g₁…g₉]，g₁=上爻，g₉=下爻，每爻 ∈ {+1,0,−1}。</p></div>
+    <div class="card"><b>算子（5类）</b><p>错 F_C（逐爻对偶，对合）· 综 F_Z（序列反转，对合）· 错综 F_CZ · 互 F_H（5维内核投影）· 动爻变卦 F_B（+1↔0↔−1）。外加第6类变易 F_V（变之七律）。</p></div>
+    <div class="card"><b>等价类</b><p>{G, F_C(G), F_Z(G), F_CZ(G)} 归并去重 → 5002 组。</p></div>
+    <div class="card"><b>检索</b><p>欧氏距离 D=√(Σ(g_Ai−g_Bi)²)，输入语义映射目标向量，全集 Top-N 最邻近。</p></div>
+  </div>
+
+  <h2>FAQ</h2>
+  <div class="faq">
+    <details open><summary>什么是三元九维19683？</summary><p>一个确定性符号认知坐标系：9 维三态向量全集 3⁹=19683 卦，5002 等价类，五类算子，欧氏距离检索，可作为大模型/Agent 的可定位、可泛化、可审计认知层。</p></details>
+    <details><summary>3⁹=19683 是怎么来的？</summary><p>9 个爻位，每爻可取 +1/0/−1 三种态，故全集 = 3⁹ = 19,683。</p></details>
+    <details><summary>5002 个等价类怎么算的？</summary><p>每卦取等价集合 {G, 错G, 综G, 错综G}，遍历全集合并重复组，得 5002 个独立等价类。</p></details>
+    <details><summary>和周易 64 卦什么关系？</summary><p>逆向学习周易 64 卦符号范式（爻态、错综、互体、变爻）后迁移到三元九维公理，不照搬二元六爻规则——取范式，不照搬。</p></details>
+    <details><summary>它是玄学/占卜吗？</summary><p>不是。它是可计算、可审计的符号系统。人文卦辞/诗词是独立文本创作层，不反向改动底层数理；金融子线已完成完整证伪实验，结论为「可审计状态描述符」，不构成荐股。</p></details>
+  </div>
+
+  <h2>论文与开放记录</h2>
+  <div class="links">
+    <p>· 学术论文（Zenodo）：<a href="https://zenodo.org/records/23437930">DOI 10.5281/zenodo.23437930</a></p>
+    <p>· 英文技术文（Dev.to）：<a href="https://dev.to/q1z2q3debug/the-trinary-nine-dimensional-19683-cognitive-system-a-locatable-and-generalizable-symbolic-4fp7">The Trinary Nine-Dimensional 19683 Cognitive System</a></p>
+    <p>· 代码仓库：<a href="https://github.com/q1z2q3-debug/tne-core">github.com/q1z2q3-debug/tne-core</a></p>
+  </div>
+
+  <div class="foot">MIT License（代码）· CC-BY-4.0（论文） · 本页内容全部可复算可审计</div>
+</div>
+</body>
+</html>
