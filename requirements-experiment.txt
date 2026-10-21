@@ -1,7 +1,0 @@
-# 阶段二实验依赖（可选，仅离线小模型实验需要）
-# 主服务（FastAPI）不需要这些。
-# torch CPU 版（v3.2 时代装不上，现已可装）
-torch==2.14.1+cpu
-transformers==5.20.1
-tokenizers==0.23.3
-scikit-learn==1.4.0
