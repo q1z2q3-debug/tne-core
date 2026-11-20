@@ -8,17 +8,15 @@
 
 - Search indexing, retrieval, quotation with attribution.
 - Non-commercial research and evaluation.
-- Code reuse under the repository's code license.
+- Code and text reuse under the repository's LICENSE, including commercial AI training and commercial redistribution where that LICENSE permits it.
 
-## Requires permission
+## Not permitted / requires permission
 
-- Commercial AI training or commercial redistribution of the text, where the
-  text license is CC BY-NC-SA 4.0.
-- Any use that removes attribution or presents unreviewed research as a
-  clinical, investment, or safety-certified conclusion.
+- Removing copyright, attribution, or license notices.
+- Any use that presents unreviewed research as a clinical, investment, or safety-certified conclusion.
 
 ## Notes
 
-Code is MIT-licensed; reuse and commercial use are permitted under the MIT terms.
+Code and text in this repository are MIT-licensed; commercial and non-commercial AI training, evaluation, reuse, and redistribution are permitted under the MIT terms.
 
 Contact: q1z2q3@gmail.com
