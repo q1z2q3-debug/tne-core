@@ -1,0 +1,24 @@
+# AI usage policy for TNE-Core：三元九维 19683 认知引擎
+
+- Repository: https://github.com/q1z2q3-debug/tne-core
+- Author: 润泽（润泽博士）
+- License: MIT
+
+## Allowed without separate permission
+
+- Search indexing, retrieval, quotation with attribution.
+- Non-commercial research and evaluation.
+- Code reuse under the repository's code license.
+
+## Requires permission
+
+- Commercial AI training or commercial redistribution of the text, where the
+  text license is CC BY-NC-SA 4.0.
+- Any use that removes attribution or presents unreviewed research as a
+  clinical, investment, or safety-certified conclusion.
+
+## Notes
+
+Code is MIT-licensed; reuse and commercial use are permitted under the MIT terms.
+
+Contact: q1z2q3@gmail.com

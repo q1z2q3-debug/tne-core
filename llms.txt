@@ -1,0 +1,29 @@
+# TNE-Core：三元九维 19683 认知引擎
+
+> 可定位、可泛化、可审计的符号认知坐标层，给 LLM/Agent 用。
+
+Canonical repository: https://github.com/q1z2q3-debug/tne-core
+Documentation: https://q1z2q3-debug.github.io/tne-core/
+
+## What this is
+
+TNE-Core 把九维三态向量映射到 19,683 个卦态，经错/综/错综/互/变算子归并为 5,002 个等价类；提供 FastAPI 坐标服务与轨迹、习惯、张力等运行时接口。
+
+## Entry points
+
+- GitHub: https://github.com/q1z2q3-debug/tne-core
+- Zenodo 论文: https://zenodo.org/records/23437930
+- GEO 文档: https://github.com/q1z2q3-debug/tne-core/blob/main/docs/GEO.md
+
+## Citation
+
+- `CITATION.cff` in this repository
+- Author: 润泽（润泽博士）
+- Date: 2026-11-20
+- License: MIT
+
+## Machine-readable
+
+- `llms.txt` (this file)
+- `ai.txt`
+- `CITATION.cff`

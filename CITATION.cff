@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+type: software
+title: "TNE-Core：三元九维 19683 认知引擎"
+authors:
+  - family-names: "润泽"
+    given-names: "乔忠"
+    alias: "润泽博士"
+    website: "https://github.com/q1z2q3-debug"
+repository-code: "https://github.com/q1z2q3-debug/tne-core"
+url: "https://q1z2q3-debug.github.io/tne-core/"
+abstract: "TNE-Core 把九维三态向量映射到 19,683 个卦态，经错/综/错综/互/变算子归并为 5,002 个等价类；提供 FastAPI 坐标服务与轨迹、习惯、张力等运行时接口。"
+license: "MIT"
+date-released: 2026-11-20
+keywords:
+  - "19683"
+  - "ternary"
+  - "cognitive-engine"
+  - "symbolic-ai"
+  - "fastapi"

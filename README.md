@@ -121,3 +121,11 @@ tne-core/
 ## 开源协议
 
 MIT License · 论文 CC-BY-4.0
+
+<!-- research-repo-standard -->
+## 研究仓库入口
+
+- 引用：`CITATION.cff`
+- 模型入口：`llms.txt`、`ai.txt`
+- 文档页：https://q1z2q3-debug.github.io/tne-core/
+- 许可：MIT
