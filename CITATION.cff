@@ -3,8 +3,8 @@ message: "If you use this work, please cite it as below."
 type: software
 title: "TNE-Core：三元九维 19683 认知引擎"
 authors:
-  - family-names: "润泽"
-    given-names: "乔忠"
+  - family-names: "乔"
+    given-names: "忠"
     alias: "润泽博士"
     website: "https://github.com/q1z2q3-debug"
 repository-code: "https://github.com/q1z2q3-debug/tne-core"
